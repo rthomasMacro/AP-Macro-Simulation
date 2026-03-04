@@ -1,0 +1,2626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Economic Summit — AP Macro Simulation</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d0d0d;
+    --paper: #f5f0e8;
+    --cream: #ede8da;
+    --gold: #c9a84c;
+    --gold-light: #e8d49a;
+    --red: #b33a3a;
+    --green: #2d6e4e;
+    --blue: #2b4a7a;
+    --blue-light: #4a7ab5;
+    --gray: #6b6b6b;
+    --border: #c8c0a8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .site-header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    border-bottom: 3px solid var(--gold);
+  }
+  .site-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    letter-spacing: 0.08em;
+    color: var(--gold);
+  }
+  .header-right { display: flex; align-items: center; gap: 1rem; }
+  .round-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    background: var(--gold);
+    color: var(--ink);
+    padding: 0.3rem 0.8rem;
+    font-weight: 500;
+  }
+
+  /* ── LAYOUT ── */
+  .app { display: flex; height: calc(100vh - 60px); overflow: hidden; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 280px;
+    min-width: 280px;
+    background: var(--ink);
+    color: var(--paper);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    border-right: 3px solid var(--gold);
+  }
+  .sidebar-section { padding: 1.2rem; border-bottom: 1px solid #2a2a2a; }
+  .sidebar-section h3 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.8rem;
+  }
+  .country-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.6rem;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: background 0.15s;
+    margin-bottom: 0.2rem;
+  }
+  .country-item:hover { background: #1f1f1f; }
+  .country-item.active { background: #2a2200; border-left: 3px solid var(--gold); }
+  .country-flag { font-size: 1.2rem; }
+  .country-name { font-size: 0.85rem; font-weight: 500; }
+  .country-status {
+    margin-left: auto;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--gray);
+  }
+  .country-status.responded { background: var(--green); }
+  .country-status.pending { background: #e8a020; }
+
+  .mode-btn {
+    width: 100%;
+    padding: 0.7rem;
+    border: 1px solid #333;
+    background: transparent;
+    color: var(--paper);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: 0.4rem;
+    text-align: left;
+  }
+  .mode-btn:hover { background: #1f1f1f; border-color: var(--gold); }
+  .mode-btn.active { background: var(--gold); color: var(--ink); font-weight: 600; border-color: var(--gold); }
+
+  /* ── MAIN ── */
+  .main { flex: 1; overflow-y: auto; }
+
+  /* ── VIEWS ── */
+  .view { display: none; padding: 2rem; }
+  .view.active { display: block; }
+
+  /* ── TEACHER DASHBOARD ── */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .card {
+    background: white;
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--gold);
+    padding: 1.5rem;
+  }
+  .card h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: var(--ink);
+  }
+  .card-full { grid-column: 1 / -1; }
+
+  /* Crisis cards */
+  .crisis-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+  .crisis-card {
+    border: 1px solid var(--border);
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    background: var(--cream);
+  }
+  .crisis-card:hover { border-color: var(--gold); background: white; transform: translateY(-1px); }
+  .crisis-card.selected { border-color: var(--red); background: #fff5f5; }
+  .crisis-unit {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+  }
+  .crisis-title { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; }
+  .crisis-desc { font-size: 0.75rem; color: var(--gray); line-height: 1.4; }
+
+  .btn {
+    padding: 0.7rem 1.5rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+    font-weight: 500;
+  }
+  .btn-gold { background: var(--gold); color: var(--ink); }
+  .btn-gold:hover { background: #b8943e; }
+  .btn-dark { background: var(--ink); color: var(--paper); }
+  .btn-dark:hover { background: #2a2a2a; }
+  .btn-red { background: var(--red); color: white; }
+  .btn-red:hover { background: #922e2e; }
+  .btn-green { background: var(--green); color: white; }
+  .btn-green:hover { background: #225540; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Country overview table */
+  .country-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .country-table th {
+    background: var(--ink);
+    color: var(--gold);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    padding: 0.6rem 0.8rem;
+    text-align: left;
+    text-transform: uppercase;
+  }
+  .country-table td { padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border); }
+  .country-table tr:hover td { background: var(--cream); }
+  .stat-up { color: var(--green); font-weight: 600; }
+  .stat-down { color: var(--red); font-weight: 600; }
+  .stat-neutral { color: var(--gray); }
+
+  /* ── STUDENT VIEW ── */
+  .country-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: var(--ink);
+    color: var(--paper);
+    border-bottom: 3px solid var(--gold);
+  }
+  .country-header-flag { font-size: 3rem; }
+  .country-header-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    color: var(--gold);
+  }
+  .country-header-role { font-size: 0.85rem; color: #aaa; margin-top: 0.2rem; }
+
+  .indicators-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .indicator-card {
+    background: white;
+    border: 1px solid var(--border);
+    padding: 1.2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .indicator-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .indicator-card.gdp::before { background: var(--blue); }
+  .indicator-card.inflation::before { background: var(--red); }
+  .indicator-card.unemployment::before { background: #e8a020; }
+  .indicator-card.interest::before { background: var(--green); }
+  .indicator-card.exchange::before { background: #8b5cf6; }
+  .indicator-card.trade::before { background: var(--gold); }
+
+  .indicator-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gray);
+    margin-bottom: 0.5rem;
+  }
+  .indicator-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.6rem;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .indicator-change {
+    font-size: 0.7rem;
+    margin-top: 0.3rem;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .indicator-unit { font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; color: var(--gray); }
+
+  /* Crisis alert */
+  .crisis-alert {
+    background: #fff8ed;
+    border: 2px solid var(--gold);
+    border-left: 6px solid var(--red);
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .crisis-alert-icon { font-size: 1.5rem; }
+  .crisis-alert-unit {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--red);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+  }
+  .crisis-alert-title { font-weight: 700; font-size: 1rem; margin-bottom: 0.4rem; }
+  .crisis-alert-body { font-size: 0.85rem; color: var(--gray); line-height: 1.5; }
+
+  /* Policy options */
+  .policy-section {
+    background: white;
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--blue);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .policy-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    margin-bottom: 0.4rem;
+  }
+  .policy-subtitle { font-size: 0.8rem; color: var(--gray); margin-bottom: 1.2rem; }
+
+  .policy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1.5rem; }
+  .policy-option {
+    border: 2px solid var(--border);
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--cream);
+    position: relative;
+  }
+  .policy-option:hover { border-color: var(--blue-light); background: white; }
+  .policy-option.selected { border-color: var(--blue); background: #f0f5ff; }
+  .policy-option.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 0.5rem; right: 0.6rem;
+    color: var(--blue);
+    font-weight: 700;
+  }
+  .policy-type {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+  }
+  .fiscal { color: var(--green); }
+  .monetary { color: var(--blue); }
+  .trade { color: #8b5cf6; }
+  .exchange-rate { color: #e8a020; }
+
+  .policy-title { font-size: 0.88rem; font-weight: 600; margin-bottom: 0.3rem; }
+  .policy-desc { font-size: 0.75rem; color: var(--gray); line-height: 1.4; }
+
+  .justification-area {
+    margin-top: 1rem;
+  }
+  .justification-area label {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gray);
+    margin-bottom: 0.5rem;
+  }
+  .justification-area textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    padding: 0.8rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.85rem;
+    resize: vertical;
+    min-height: 100px;
+    background: var(--cream);
+    line-height: 1.5;
+  }
+  .justification-area textarea:focus { outline: 2px solid var(--blue); background: white; }
+
+  .concept-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
+  .concept-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    padding: 0.25rem 0.6rem;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    color: var(--gray);
+    letter-spacing: 0.05em;
+  }
+  .concept-tag.active { background: var(--blue); border-color: var(--blue); color: white; cursor: pointer; }
+
+  /* AI Feedback */
+  .ai-feedback {
+    background: #f0f7f4;
+    border: 1px solid #a8d4c0;
+    border-left: 4px solid var(--green);
+    padding: 1.2rem 1.5rem;
+    margin-top: 1rem;
+  }
+  .ai-feedback-header {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 0.6rem;
+  }
+  .ai-feedback-body { font-size: 0.85rem; line-height: 1.6; color: var(--ink); }
+
+  /* Loading */
+  .loading-spinner {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 0.5rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* TEACHER CRISIS ACTIVE */
+  .active-crisis-banner {
+    background: var(--red);
+    color: white;
+    padding: 0.8rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .active-crisis-banner strong { font-family: 'Playfair Display', serif; font-size: 1rem; }
+  .active-crisis-banner span { font-size: 0.8rem; opacity: 0.9; }
+
+  /* HISTORY LOG */
+  .history-log { }
+  .history-entry {
+    border-left: 3px solid var(--border);
+    padding: 0.8rem 1rem;
+    margin-bottom: 0.8rem;
+    background: var(--cream);
+  }
+  .history-entry.crisis { border-color: var(--red); }
+  .history-entry.decision { border-color: var(--blue); }
+  .history-round {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--gray);
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+  }
+  .history-title { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.2rem; }
+  .history-body { font-size: 0.78rem; color: var(--gray); line-height: 1.4; }
+
+  /* PAGE TITLE */
+  .page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    margin-bottom: 0.3rem;
+  }
+  .page-subtitle {
+    font-size: 0.82rem;
+    color: var(--gray);
+    margin-bottom: 1.5rem;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* Concept reference panel */
+  .concept-ref {
+    background: #fffdf5;
+    border: 1px solid var(--gold-light);
+    border-top: 3px solid var(--gold);
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .concept-ref-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.8rem;
+  }
+  .concept-list { display: flex; flex-direction: column; gap: 0.5rem; }
+  .concept-item { display: flex; gap: 0.8rem; align-items: flex-start; }
+  .concept-item-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    background: var(--ink);
+    color: var(--gold);
+    padding: 0.2rem 0.5rem;
+    white-space: nowrap;
+    min-width: 60px;
+    text-align: center;
+  }
+  .concept-item-text { font-size: 0.8rem; line-height: 1.4; color: var(--gray); }
+
+  /* Tabs */
+  .tabs { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 1.5rem; }
+  .tab {
+    padding: 0.7rem 1.2rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    color: var(--gray);
+    transition: all 0.15s;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.active { border-bottom-color: var(--blue); color: var(--blue); font-weight: 600; }
+
+  /* Responsive indicators */
+  @media (max-width: 900px) {
+    .indicators-grid { grid-template-columns: repeat(2, 1fr); }
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .policy-grid { grid-template-columns: 1fr; }
+  }
+
+  select, input[type="text"] {
+    padding: 0.5rem 0.8rem;
+    border: 1px solid var(--border);
+    background: var(--cream);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.85rem;
+  }
+  select:focus, input:focus { outline: 2px solid var(--blue); }
+
+  .submitted-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #edfaf4;
+    border: 1px solid var(--green);
+    color: var(--green);
+    padding: 0.4rem 0.8rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  .section-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 1.5rem 0;
+  }
+
+  .teacher-avatar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+  }
+  .teacher-avatar-wrap svg {
+    border-radius: 50%;
+    border: 2px solid var(--gold);
+    background: var(--ink);
+    flex-shrink: 0;
+  }
+  .teacher-avatar-wrap .title-block {}
+
+  /* ── RUBRIC SELF-CHECK ── */
+  .rubric-box {
+    background: #f8f5ff;
+    border: 1px solid #c4b5e8;
+    border-left: 4px solid #7c3aed;
+    padding: 1.2rem 1.5rem;
+    margin-top: 1rem;
+  }
+  .rubric-box-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #7c3aed;
+    margin-bottom: 0.8rem;
+  }
+  .rubric-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e8e0f8;
+    font-size: 0.82rem;
+  }
+  .rubric-item:last-child { border-bottom: none; }
+  .rubric-check {
+    width: 20px; height: 20px;
+    border: 2px solid #c4b5e8;
+    border-radius: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    font-size: 0.75rem;
+  }
+  .rubric-check.checked { background: #7c3aed; border-color: #7c3aed; color: white; }
+  .rubric-score-bar {
+    height: 6px;
+    background: #e8e0f8;
+    border-radius: 3px;
+    margin-top: 0.8rem;
+    overflow: hidden;
+  }
+  .rubric-score-fill {
+    height: 100%;
+    background: #7c3aed;
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+  .rubric-score-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: #7c3aed;
+    margin-top: 0.4rem;
+    text-align: right;
+  }
+
+  /* ── CONSEQUENCE REVEAL ── */
+  .consequence-panel {
+    background: #fff8ed;
+    border: 2px solid var(--gold);
+    border-left: 6px solid var(--green);
+    padding: 1.2rem 1.5rem;
+    margin-top: 1rem;
+    animation: slideIn 0.3s ease;
+  }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+  .consequence-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 0.8rem;
+  }
+  .consequence-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+  }
+  .consequence-stat {
+    text-align: center;
+    padding: 0.6rem;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+  }
+  .consequence-stat-label { font-size: 0.65rem; color: var(--gray); font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; }
+  .consequence-stat-val { font-size: 1rem; font-weight: 700; font-family: 'IBM Plex Mono', monospace; }
+  .consequence-stat-change { font-size: 0.7rem; font-family: 'IBM Plex Mono', monospace; }
+  .up { color: var(--green); }
+  .down { color: var(--red); }
+
+  /* ── GLOBAL COMPARE ── */
+  .compare-banner {
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--blue);
+    padding: 1rem 1.2rem;
+    margin-top: 1rem;
+    font-size: 0.82rem;
+  }
+  .compare-banner-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 0.6rem;
+  }
+  .compare-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8rem;
+  }
+  .compare-row:last-child { border-bottom: none; }
+  .compare-policy-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    padding: 0.15rem 0.5rem;
+    background: var(--blue);
+    color: white;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  /* ── TEACHER: SCORING PANEL ── */
+  .score-panel {
+    background: white;
+    border: 1px solid var(--border);
+    border-top: 3px solid #7c3aed;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .score-entry {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.82rem;
+  }
+  .score-entry:last-child { border-bottom: none; }
+  .score-input {
+    width: 60px;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    text-align: center;
+  }
+  .score-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 2px;
+  }
+  .score-a { background: #edfaf4; color: var(--green); border: 1px solid var(--green); }
+  .score-b { background: #e8f0ff; color: var(--blue); border: 1px solid var(--blue); }
+  .score-c { background: #fff8ed; color: #8a5700; border: 1px solid #e8a020; }
+  .score-d { background: #fff0f0; color: var(--red); border: 1px solid var(--red); }
+
+  /* ── CONCEPT HEATMAP ── */
+  .heatmap-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    margin-top: 0.8rem;
+  }
+  .heatmap-cell {
+    padding: 0.6rem;
+    text-align: center;
+    border-radius: 3px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    cursor: default;
+  }
+  .heatmap-cell .hm-label { font-weight: 600; margin-bottom: 0.2rem; }
+  .heatmap-cell .hm-count { font-size: 1rem; font-weight: 700; }
+
+  /* ── DEBRIEF MODE ── */
+  .debrief-card {
+    border: 1px solid var(--border);
+    background: var(--cream);
+    padding: 1rem 1.2rem;
+    margin-bottom: 0.8rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1rem;
+    align-items: start;
+  }
+  .debrief-flag { font-size: 1.8rem; }
+  .debrief-policy-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+  }
+  .debrief-justification { font-size: 0.8rem; color: var(--gray); line-height: 1.5; margin-top: 0.3rem; }
+  .debrief-score-col { text-align: right; min-width: 80px; }
+  .debrief-score-big { font-family: 'IBM Plex Mono', monospace; font-size: 1.4rem; font-weight: 700; color: var(--blue); }
+  .debrief-score-label { font-size: 0.65rem; color: var(--gray); font-family: 'IBM Plex Mono', monospace; }
+
+  /* ── EXPORT BUTTON ── */
+  .btn-purple { background: #7c3aed; color: white; }
+  .btn-purple:hover { background: #6d28d9; }
+
+  /* ── TEACHER ASSESSMENT TAB ── */
+  .assess-tabs { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 1.5rem; }
+  .assess-tab {
+    padding: 0.6rem 1.1rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    color: var(--gray);
+    transition: all 0.15s;
+  }
+  .assess-tab:hover { color: var(--ink); }
+  .assess-tab.active { border-bottom-color: #7c3aed; color: #7c3aed; font-weight: 600; }
+
+  /* ── CONFIDENCE BADGES ── */
+  .confidence-row {
+    display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;
+  }
+  .conf-btn {
+    padding: 0.35rem 0.8rem;
+    border: 2px solid var(--border);
+    background: var(--cream);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.15s;
+  }
+  .conf-btn:hover { border-color: var(--blue); }
+  .conf-btn.selected-high { background: #edfaf4; border-color: var(--green); color: var(--green); font-weight: 600; }
+  .conf-btn.selected-med  { background: #fff8ed; border-color: #e8a020; color: #8a5700; font-weight: 600; }
+  .conf-btn.selected-low  { background: #fff0f0; border-color: var(--red); color: var(--red); font-weight: 600; }
+
+  /* word count */
+  .word-count { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--gray); text-align: right; margin-top: 0.3rem; }
+  .word-count.good { color: var(--green); }
+  .word-count.warn { color: #e8a020; }
+
+  /* ── CO-SPONSORSHIP ── */
+  .cosponsor-box {
+    background: #fff8ed;
+    border: 2px solid var(--gold);
+    border-left: 5px solid #e8a020;
+    padding: 1.2rem 1.5rem;
+    margin-top: 1rem;
+  }
+  .cosponsor-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #8a5700;
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .cosponsor-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.8rem; }
+  .cosponsor-flag-btn {
+    padding: 0.4rem 0.8rem;
+    border: 2px solid var(--border);
+    background: white;
+    cursor: pointer;
+    font-size: 0.85rem;
+    border-radius: 3px;
+    transition: all 0.15s;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .cosponsor-flag-btn:hover { border-color: var(--gold); background: #fffaed; }
+  .cosponsor-flag-btn.selected { border-color: #e8a020; background: #fff3cc; font-weight: 600; }
+  .cosponsor-flag-btn.pending { border-color: #e8a020; background: #fff3cc; opacity: 0.7; }
+  .cosponsor-flag-btn.accepted { border-color: var(--green); background: #edfaf4; }
+  .cosponsor-flag-btn.declined { border-color: var(--red); background: #fff0f0; text-decoration: line-through; opacity: 0.6; }
+  .cosponsor-proposal {
+    background: #fff3cc;
+    border: 1px solid var(--gold);
+    border-left: 4px solid #e8a020;
+    padding: 0.8rem 1rem;
+    margin-bottom: 0.6rem;
+    font-size: 0.82rem;
+    animation: slideIn 0.3s ease;
+  }
+  .cosponsor-proposal-header {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #8a5700;
+    margin-bottom: 0.4rem;
+  }
+  .cosponsor-accept-row { display: flex; gap: 0.5rem; margin-top: 0.6rem; }
+  .btn-accept { background: var(--green); color: white; padding: 0.4rem 0.9rem; font-size: 0.75rem; font-family: 'IBM Plex Mono', monospace; border: none; cursor: pointer; }
+  .btn-decline { background: var(--red); color: white; padding: 0.4rem 0.9rem; font-size: 0.75rem; font-family: 'IBM Plex Mono', monospace; border: none; cursor: pointer; }
+  .cosponsor-badge {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    background: #fff3cc; border: 1px solid #e8a020; color: #8a5700;
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem;
+    padding: 0.2rem 0.5rem; border-radius: 2px;
+  }
+  .cosponsor-bonus {
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem;
+    color: var(--green); background: #edfaf4; border: 1px solid var(--green);
+    padding: 0.2rem 0.5rem; border-radius: 2px; margin-left: 0.3rem;
+  }
+
+  /* ── ENHANCED CONSEQUENCES ── */
+  .consequence-panel {
+    background: #fff8ed;
+    border: 2px solid var(--gold);
+    border-left: 6px solid var(--green);
+    padding: 1.2rem 1.5rem;
+    margin-top: 1rem;
+    animation: slideIn 0.3s ease;
+  }
+  .consequence-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 0.8rem;
+  }
+  .consequence-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+  }
+  .consequence-stat {
+    text-align: center;
+    padding: 0.6rem;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+  }
+  .consequence-stat-label { font-size: 0.65rem; color: var(--gray); font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; }
+  .consequence-stat-val { font-size: 1rem; font-weight: 700; font-family: 'IBM Plex Mono', monospace; }
+  .consequence-stat-change { font-size: 0.7rem; font-family: 'IBM Plex Mono', monospace; }
+  .up { color: var(--green); }
+  .down { color: var(--red); }
+  .spillover-notice {
+    background: #f0f5ff;
+    border: 1px solid var(--blue-light);
+    border-left: 4px solid var(--blue);
+    padding: 0.7rem 1rem;
+    margin-top: 0.8rem;
+    font-size: 0.78rem;
+    color: var(--blue);
+  }
+  .danger-alert {
+    background: #fff0f0;
+    border: 1px solid var(--red);
+    border-left: 4px solid var(--red);
+    padding: 0.7rem 1rem;
+    margin-top: 0.8rem;
+    font-size: 0.78rem;
+    color: var(--red);
+    font-weight: 600;
+    animation: pulse 1s ease 2;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+  /* ── GLOBAL COMPARE ── */
+  .compare-banner {
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--blue);
+    padding: 1rem 1.2rem;
+    margin-top: 1rem;
+    font-size: 0.82rem;
+  }
+  .compare-banner-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 0.6rem;
+  }
+  .compare-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8rem;
+  }
+  .compare-row:last-child { border-bottom: none; }
+  .compare-policy-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    padding: 0.15rem 0.5rem;
+    background: var(--blue);
+    color: white;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  /* ── TEACHER: ENHANCED SCORING ── */
+  .score-panel {
+    background: white;
+    border: 1px solid var(--border);
+    border-top: 3px solid #7c3aed;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .score-entry {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.82rem;
+  }
+  .score-entry:last-child { border-bottom: none; }
+  .score-entry-header { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.6rem; }
+  .score-input {
+    width: 55px;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    text-align: center;
+  }
+  .score-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 2px;
+  }
+  .score-a { background: #edfaf4; color: var(--green); border: 1px solid var(--green); }
+  .score-b { background: #e8f0ff; color: var(--blue); border: 1px solid var(--blue); }
+  .score-c { background: #fff8ed; color: #8a5700; border: 1px solid #e8a020; }
+  .score-d { background: #fff0f0; color: var(--red); border: 1px solid var(--red); }
+
+  /* Rubric dimension scoring */
+  .dim-rubric { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem; }
+  .dim-label { font-size: 0.75rem; color: var(--gray); }
+  .dim-stars { display: flex; gap: 0.2rem; }
+  .dim-star { width: 18px; height: 18px; cursor: pointer; font-size: 0.8rem; opacity: 0.3; transition: opacity 0.1s; }
+  .dim-star.lit { opacity: 1; }
+  .dim-total { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: #7c3aed; font-weight: 700; margin-top: 0.3rem; text-align: right; }
+
+  /* Annotation field */
+  .score-annotation {
+    width: 100%;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--border);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.78rem;
+    background: var(--cream);
+    resize: none;
+    height: 48px;
+    margin-top: 0.4rem;
+  }
+  .score-annotation:focus { outline: 1px solid #7c3aed; background: white; }
+
+  /* ── CONCEPT HEATMAP ── */
+  .heatmap-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    margin-top: 0.8rem;
+  }
+  .heatmap-cell {
+    padding: 0.6rem;
+    text-align: center;
+    border-radius: 3px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    cursor: default;
+  }
+  .heatmap-cell .hm-label { font-weight: 600; margin-bottom: 0.2rem; }
+  .heatmap-cell .hm-count { font-size: 1rem; font-weight: 700; }
+
+  /* ── DEBRIEF MODE ── */
+  .debrief-card {
+    border: 1px solid var(--border);
+    background: var(--cream);
+    padding: 1rem 1.2rem;
+    margin-bottom: 0.8rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1rem;
+    align-items: start;
+  }
+  .debrief-flag { font-size: 1.8rem; }
+  .debrief-policy-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+  }
+  .debrief-justification { font-size: 0.8rem; color: var(--gray); line-height: 1.5; margin-top: 0.3rem; }
+  .debrief-score-col { text-align: right; min-width: 80px; }
+  .debrief-score-big { font-family: 'IBM Plex Mono', monospace; font-size: 1.4rem; font-weight: 700; color: var(--blue); }
+  .debrief-score-label { font-size: 0.65rem; color: var(--gray); font-family: 'IBM Plex Mono', monospace; }
+
+  /* ── ROUND REPORT ── */
+  .round-report {
+    background: white;
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--gold);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    white-space: pre-wrap;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: var(--ink);
+  }
+
+  /* ── EXPORT BUTTON ── */
+  .btn-purple { background: #7c3aed; color: white; }
+  .btn-purple:hover { background: #6d28d9; }
+  .btn-teal { background: #0d7c6b; color: white; }
+  .btn-teal:hover { background: #0a6358; }
+
+  /* ── TEACHER ASSESSMENT TAB ── */
+  .assess-tabs { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .assess-tab {
+    padding: 0.6rem 1.1rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    color: var(--gray);
+    transition: all 0.15s;
+  }
+  .assess-tab:hover { color: var(--ink); }
+  .assess-tab.active { border-bottom-color: #7c3aed; color: #7c3aed; font-weight: 600; }
+
+  /* ── CONFIDENCE BADGES ── */
+  .confidence-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .conf-btn {
+    padding: 0.35rem 0.8rem;
+    border: 2px solid var(--border);
+    background: var(--cream);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.15s;
+  }
+  .conf-btn:hover { border-color: var(--blue); }
+  .conf-btn.selected-high { background: #edfaf4; border-color: var(--green); color: var(--green); font-weight: 600; }
+  .conf-btn.selected-med  { background: #fff8ed; border-color: #e8a020; color: #8a5700; font-weight: 600; }
+  .conf-btn.selected-low  { background: #fff0f0; border-color: var(--red); color: var(--red); font-weight: 600; }
+
+  /* proposals sidebar badge */
+  .proposal-dot {
+    display: inline-block; width: 8px; height: 8px;
+    background: #e8a020; border-radius: 50%; margin-left: 4px;
+    animation: pulse 1s infinite;
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <h1>⚖ GLOBAL ECONOMIC SUMMIT — AP MACRO SIMULATION</h1>
+  <div class="header-right">
+    <span id="roundBadge" class="round-badge">ROUND 1 OF 5</span>
+    <select id="modeSelect" onchange="switchMode(this.value)" style="background:var(--ink);color:var(--gold);border:1px solid var(--gold);padding:0.3rem 0.5rem;font-size:0.75rem;font-family:'IBM Plex Mono',monospace;">
+      <option value="teacher">🧑 Teacher View</option>
+      <option value="student">🌍 Student View</option>
+    </select>
+  </div>
+</header>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <h3>Countries</h3>
+      <div id="countryList"></div>
+    </div>
+    <div class="sidebar-section">
+      <h3>Navigation</h3>
+      <button class="mode-btn active" id="navDashboard" onclick="showTab('dashboard')">📊 Dashboard</button>
+      <button class="mode-btn" id="navEvents" onclick="showTab('events')">⚡ Events &amp; Crises</button>
+      <button class="mode-btn" id="navHistory" onclick="showTab('history')">📜 Round History</button>
+      <button class="mode-btn" id="navAssess" onclick="showTab('assess')">🎯 Assessment</button>
+      <button class="mode-btn" id="navReference" onclick="showTab('reference')">📖 Concept Reference</button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+    <!-- TEACHER: Dashboard -->
+    <div id="view-dashboard" class="view active" style="padding:2rem;">
+
+      <!-- Teacher avatar header -->
+      <div class="teacher-avatar-wrap" id="teacherAvatarWrap">
+        <svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 100 100">
+          <!-- Background circle -->
+          <circle cx="50" cy="50" r="50" fill="#1a2a4a"/>
+          <!-- Shirt/body -->
+          <ellipse cx="50" cy="88" rx="30" ry="20" fill="#2b4a7a"/>
+          <rect x="22" y="72" width="56" height="28" rx="4" fill="#2b4a7a"/>
+          <!-- Collar -->
+          <polygon points="50,70 42,80 50,76 58,80" fill="white" opacity="0.9"/>
+          <!-- Neck -->
+          <rect x="44" y="60" width="12" height="14" rx="2" fill="#f0c8a0"/>
+          <!-- Head -->
+          <ellipse cx="50" cy="45" rx="19" ry="21" fill="#f0c8a0"/>
+          <!-- Hair - short brown, slightly textured on top and sides -->
+          <ellipse cx="50" cy="27" rx="19" ry="9" fill="#6b3a1f"/>
+          <rect x="31" y="27" width="38" height="10" fill="#6b3a1f"/>
+          <!-- Side hair -->
+          <rect x="31" y="27" width="6" height="18" rx="3" fill="#6b3a1f"/>
+          <rect x="63" y="27" width="6" height="18" rx="3" fill="#6b3a1f"/>
+          <!-- Hairline detail -->
+          <ellipse cx="50" cy="29" rx="16" ry="5" fill="#7a4422"/>
+          <!-- Ears -->
+          <ellipse cx="31" cy="46" rx="4" ry="5" fill="#f0c8a0"/>
+          <ellipse cx="69" cy="46" rx="4" ry="5" fill="#f0c8a0"/>
+          <!-- Eye whites -->
+          <ellipse cx="41" cy="44" rx="5" ry="3.5" fill="white"/>
+          <ellipse cx="59" cy="44" rx="5" ry="3.5" fill="white"/>
+          <!-- Irises - blue eyes -->
+          <circle cx="41" cy="44" r="2.5" fill="#4a7ab5"/>
+          <circle cx="59" cy="44" r="2.5" fill="#4a7ab5"/>
+          <!-- Pupils -->
+          <circle cx="41.5" cy="43.5" r="1.2" fill="#0d0d0d"/>
+          <circle cx="59.5" cy="43.5" r="1.2" fill="#0d0d0d"/>
+          <!-- Eye shine -->
+          <circle cx="42" cy="43" r="0.5" fill="white"/>
+          <circle cx="60" cy="43" r="0.5" fill="white"/>
+          <!-- Eyebrows - brown -->
+          <path d="M36 39.5 Q41 37.5 46 39" stroke="#5a3010" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+          <path d="M54 39 Q59 37.5 64 39.5" stroke="#5a3010" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+          <!-- Nose -->
+          <path d="M50 47 Q47 53 49 55 Q50 55.5 51 55 Q53 53 50 47" fill="#e0b090" opacity="0.6"/>
+          <!-- Slight smile -->
+          <path d="M44 59 Q50 63 56 59" stroke="#c07050" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <!-- Slight beard / stubble -->
+          <ellipse cx="50" cy="62" rx="12" ry="4" fill="#7a4422" opacity="0.25"/>
+          <ellipse cx="42" cy="60" rx="4" ry="3" fill="#7a4422" opacity="0.2"/>
+          <ellipse cx="58" cy="60" rx="4" ry="3" fill="#7a4422" opacity="0.2"/>
+          <!-- Tie/lanyard hint -->
+          <rect x="47" y="77" width="6" height="12" rx="1" fill="#c9a84c" opacity="0.8"/>
+        </svg>
+        <div class="title-block">
+          <p class="page-title" id="dashTitle">Teacher Dashboard</p>
+          <p class="page-subtitle" id="dashSubtitle">Monitor all countries · impose economic events · advance rounds</p>
+        </div>
+      </div>
+
+      <div id="activeCrisisBanner" style="display:none;"></div>
+
+      <!-- Teacher overview -->
+      <div id="teacherDashboard">
+        <div class="card card-full" style="margin-bottom:1.5rem;">
+          <h2>Country Overview — All Nations</h2>
+          <table class="country-table" id="overviewTable">
+            <thead>
+              <tr>
+                <th>Country</th>
+                <th>GDP Growth</th>
+                <th>Inflation</th>
+                <th>Unemployment</th>
+                <th>Interest Rate</th>
+                <th>Trade Balance</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="overviewBody"></tbody>
+          </table>
+        </div>
+        <div style="display:flex;gap:1rem;margin-bottom:2rem;">
+          <button class="btn btn-gold" onclick="advanceRound()">⏩ Advance to Next Round</button>
+          <button class="btn btn-dark" onclick="showTab('events')">⚡ Impose New Event</button>
+          <button class="btn btn-dark" onclick="showTab('history')">📜 View History</button>
+        </div>
+
+        <div class="card card-full">
+          <h2>Student Responses This Round</h2>
+          <div id="responseSummary" style="font-size:0.85rem;color:var(--gray);">No responses yet this round.</div>
+        </div>
+        <div class="card card-full" style="margin-top:1.5rem;">
+          <h2>🤝 Co-Sponsorship Proposals</h2>
+          <p style="font-size:0.8rem;color:var(--gray);margin-bottom:1rem;">Countries proposing joint economic policies this round. Co-sponsored policies have amplified effects.</p>
+          <div id="proposalBoard"><em style="font-size:0.82rem;color:var(--gray);">No proposals yet this round.</em></div>
+        </div>
+      </div>
+
+      <!-- Student country view -->
+      <div id="studentCountryView" style="display:none;">
+        <div class="country-header" id="studentHeader"></div>
+        <div id="currentCrisisAlert"></div>
+        <div class="indicators-grid" id="indicatorsGrid"></div>
+        <div id="policySection"></div>
+      </div>
+    </div>
+
+    <!-- EVENTS PANEL -->
+    <div id="view-events" class="view" style="padding:2rem;">
+      <p class="page-title">Economic Events &amp; Crises</p>
+      <p class="page-subtitle">Select an event to impose on all countries · aligned to AP Macro Units 3–6</p>
+
+      <div id="selectedCrisisPreview" style="margin-bottom:1.5rem;"></div>
+
+      <div class="tabs">
+        <div class="tab active" onclick="filterCrises('all', this)">All Events</div>
+        <div class="tab" onclick="filterCrises('Unit 3', this)">Unit 3: National Income</div>
+        <div class="tab" onclick="filterCrises('Unit 4', this)">Unit 4: Financial Sector</div>
+        <div class="tab" onclick="filterCrises('Unit 5', this)">Unit 5: Stabilization</div>
+        <div class="tab" onclick="filterCrises('Unit 6', this)">Unit 6: Open Economy</div>
+      </div>
+
+      <div class="crisis-grid" id="crisisGrid"></div>
+
+      <div style="margin-top:1.5rem;display:flex;gap:1rem;">
+        <button class="btn btn-red" id="imposeCrisisBtn" disabled onclick="imposeCrisis()">🚨 Impose Selected Event</button>
+        <button class="btn btn-dark" onclick="showTab('dashboard')">← Back to Dashboard</button>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div id="view-history" class="view" style="padding:2rem;">
+      <p class="page-title">Round History</p>
+      <p class="page-subtitle">Track of all events imposed and decisions made</p>
+      <div id="historyLog" style="margin-top:1rem;"></div>
+    </div>
+
+    <!-- ASSESSMENT (Teacher) -->
+    <div id="view-assess" class="view" style="padding:2rem;">
+      <p class="page-title">Assessment &amp; Grading</p>
+      <p class="page-subtitle">Score responses · view concept coverage · export grades · generate reports</p>
+      <div class="assess-tabs">
+        <div class="assess-tab active" onclick="showAssessTab('scoring',this)">📝 Score Responses</div>
+        <div class="assess-tab" onclick="showAssessTab('debrief',this)">🌐 Class Debrief</div>
+        <div class="assess-tab" onclick="showAssessTab('heatmap',this)">🔥 Concept Coverage</div>
+        <div class="assess-tab" onclick="showAssessTab('report',this)">📋 Round Report</div>
+      </div>
+      <div id="assess-scoring">
+        <div class="score-panel">
+          <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:0.3rem;">Response Scoring — 4-Dimension Rubric</h2>
+          <p style="font-size:0.8rem;color:var(--gray);margin-bottom:1.2rem;">Rate each dimension 0–5 stars. Total score auto-calculates out of 20 (converted to /10).</p>
+          <div id="scoringRows"></div>
+          <div style="display:flex;gap:0.8rem;margin-top:1.2rem;flex-wrap:wrap;">
+            <button class="btn btn-purple" onclick="exportGrades()">⬇ Export Grades CSV</button>
+            <button class="btn btn-gold" onclick="autoScoreAll()">✨ AI Auto-Score All</button>
+            <button class="btn btn-teal" onclick="showAssessTab('report', document.querySelector(\'.assess-tab:nth-child(4)\'));generateRoundReport()">📋 Generate Round Report</button>
+          </div>
+          <div id="autoScoreStatus" style="margin-top:0.8rem;font-size:0.8rem;color:var(--gray);"></div>
+        </div>
+      </div>
+      <div id="assess-debrief" style="display:none;">
+        <div class="card card-full" style="margin-bottom:1.5rem;">
+          <h2>Class Debrief — All Responses</h2>
+          <p style="font-size:0.8rem;color:var(--gray);margin-bottom:1rem;">Compare how each country responded. Use for whole-class discussion. Co-sponsored policies are highlighted.</p>
+          <div id="debriefCards"></div>
+        </div>
+      </div>
+      <div id="assess-heatmap" style="display:none;">
+        <div class="card card-full">
+          <h2>Concept Coverage Heatmap</h2>
+          <p style="font-size:0.8rem;color:var(--gray);margin-bottom:1rem;">How often each AP Macro concept appeared in student justifications. Darker = more mentions. Use to identify gaps.</p>
+          <div class="heatmap-grid" id="conceptHeatmap"></div>
+        </div>
+        <div class="card card-full" style="margin-top:1.5rem;">
+          <h2>Class Statistics</h2>
+          <div id="classStats"></div>
+        </div>
+      </div>
+      <div id="assess-report" style="display:none;">
+        <div class="card card-full">
+          <h2>Round Summary Report</h2>
+          <p style="font-size:0.8rem;color:var(--gray);margin-bottom:1rem;">AI-generated summary of class performance, policy choices, and teaching recommendations for this round.</p>
+          <div style="display:flex;gap:0.8rem;margin-bottom:1rem;">
+            <button class="btn btn-teal" onclick="generateRoundReport()">✨ Generate Report</button>
+            <button class="btn btn-dark" onclick="copyReport()">📋 Copy to Clipboard</button>
+          </div>
+          <div id="roundReportContent"><em style="color:var(--gray);font-size:0.85rem;">Click Generate Report to create an AI summary of this round.</em></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REFERENCE -->
+    <div id="view-reference" class="view" style="padding:2rem;">
+      <p class="page-title">AP Macro Concept Reference</p>
+      <p class="page-subtitle">Quick-reference guide · Units 3–6 · CED aligned</p>
+      <div id="referenceContent"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════════════
+
+const COUNTRIES = [
+  { id: 'usa',    flag: '🇺🇸', name: 'United States',    role: 'Advanced Economy · Reserve Currency' },
+  { id: 'china',  flag: '🇨🇳', name: 'China',            role: 'Emerging Economy · Export-Led Growth' },
+  { id: 'brazil', flag: '🇧🇷', name: 'Brazil',           role: 'Developing Economy · Commodity Exporter' },
+  { id: 'eu',     flag: '🇪🇺', name: 'European Union',   role: 'Monetary Union · Service Economy' },
+  { id: 'india',  flag: '🇮🇳', name: 'India',            role: 'Emerging Economy · High Growth' },
+  { id: 'nigeria',flag: '🇳🇬', name: 'Nigeria',          role: 'Frontier Economy · Oil Exporter' },
+  { id: 'japan',  flag: '🇯🇵', name: 'Japan',            role: 'Advanced Economy · Aging Population' },
+  { id: 'mexico', flag: '🇲🇽', name: 'Mexico',           role: 'Developing Economy · Trade Dependent' },
+];
+
+let countryStats = {};
+COUNTRIES.forEach(c => {
+  countryStats[c.id] = {
+    gdp: (Math.random()*4 + 1).toFixed(1),
+    inflation: (Math.random()*4 + 1.5).toFixed(1),
+    unemployment: (Math.random()*5 + 3).toFixed(1),
+    interest: (Math.random()*3 + 2).toFixed(1),
+    trade: (Math.random()*4 - 2).toFixed(1),
+    exchange: 'Stable',
+    responded: false,
+    selectedPolicy: null,
+    justification: '',
+    confidence: null,
+    rubric: new Array(6).fill(false),
+    teacherScore: undefined,
+    dimScores: [0,0,0,0],   // 4 dimensions, 0-5 each
+    teacherAnnotation: '',
+    aiScoreComment: '',
+    cosponsorPartners: [],   // ids of accepted co-sponsors
+    cosponsorProposed: [],   // ids this country proposed to
+    cosponsorBonus: false,
+    prevGdp: null, prevInflation: null, prevUnemployment: null,
+  };
+});
+
+const CRISES = [
+  // Unit 3 — National Income & Price Determination
+  { id: 'c1', unit: 'Unit 3', icon: '📉', title: 'Consumer Confidence Collapse', desc: 'A major corporate scandal triggers a sharp fall in consumer spending. Aggregate Demand shifts left.', concepts: ['AD/AS','Recessionary Gap','MPC'], policies: ['fiscal','monetary'] },
+  { id: 'c2', unit: 'Unit 3', icon: '🏗️', title: 'Infrastructure Investment Boom', desc: 'Government announces massive infrastructure spending. AD shifts right; analyze multiplier effects.', concepts: ['Spending Multiplier','AD/AS','Output Gap'], policies: ['fiscal'] },
+  { id: 'c3', unit: 'Unit 3', icon: '🛢️', title: 'Oil Supply Shock', desc: 'OPEC cuts production. Energy prices spike. SRAS shifts left — stagflation threatens.', concepts: ['SRAS Shift','Stagflation','Supply Shock'], policies: ['monetary','fiscal'] },
+  { id: 'c4', unit: 'Unit 3', icon: '🏭', title: 'Productivity Technology Boom', desc: 'AI-driven productivity surge shifts LRAS right. Potential output increases significantly.', concepts: ['LRAS','Long-Run Growth','Price Level'], policies: ['fiscal','trade'] },
+  // Unit 4 — Financial Sector
+  { id: 'c5', unit: 'Unit 4', icon: '🏦', title: 'Banking Crisis', desc: 'Three major banks fail. Credit markets freeze. Money supply contracts; recession risk rises.', concepts: ['Money Multiplier','Money Supply','Credit Crunch'], policies: ['monetary'] },
+  { id: 'c6', unit: 'Unit 4', icon: '📈', title: 'Inflation Spiral', desc: 'CPI rises 8% YoY. Central bank must act to anchor inflation expectations.', concepts: ['Fisher Effect','Real vs Nominal','Loanable Funds'], policies: ['monetary'] },
+  { id: 'c7', unit: 'Unit 4', icon: '💸', title: 'Quantitative Easing Debate', desc: 'Recession deepens. Zero lower bound reached. Unconventional monetary policy on the table.', concepts: ['Money Supply','Open Market Ops','Interest Rates'], policies: ['monetary'] },
+  { id: 'c8', unit: 'Unit 4', icon: '🏠', title: 'Housing Market Bubble', desc: 'Real estate prices surge 40%. Asset bubble fears grow. Demand for loanable funds soars.', concepts: ['Loanable Funds Market','Real Interest Rate','Nominal vs Real'], policies: ['monetary','fiscal'] },
+  // Unit 5 — Long-Run Stabilization
+  { id: 'c9',  unit: 'Unit 5', icon: '📊', title: 'Deficit Spending Crisis', desc: 'National debt reaches 120% of GDP. Bond markets demand higher yields. Crowding out emerges.', concepts: ['Crowding Out','Budget Deficit','Loanable Funds'], policies: ['fiscal'] },
+  { id: 'c10', unit: 'Unit 5', icon: '⚡', title: 'Supply-Side Reform Package', desc: 'New government proposes sweeping deregulation and tax cuts. Debate: demand or supply effects?', concepts: ['LRAS','Supply-Side Policy','Fiscal Policy'], policies: ['fiscal'] },
+  { id: 'c11', unit: 'Unit 5', icon: '🔄', title: 'Phillips Curve Trade-Off', desc: 'Unemployment is 2%. Inflation rising to 6%. Central bank faces difficult policy trade-off.', concepts: ['Phillips Curve','NAIRU','Stagflation'], policies: ['monetary'] },
+  { id: 'c12', unit: 'Unit 5', icon: '🌱', title: 'Long-Run Growth Strategy', desc: 'Countries must choose between short-term stimulus and long-run investment. Growth debate.', concepts: ['Economic Growth','LRAS','Capital Deepening'], policies: ['fiscal','trade'] },
+  // Unit 6 — Open Economy
+  { id: 'c13', unit: 'Unit 6', icon: '💱', title: 'Currency War Erupts', desc: 'Country devalues its currency to boost exports. Trading partners retaliate. Exchange rates volatile.', concepts: ['Exchange Rates','Net Exports','Current Account'], policies: ['exchange-rate','trade'] },
+  { id: 'c14', unit: 'Unit 6', icon: '🚧', title: 'Trade War & Tariffs', desc: 'Major economies impose 25% tariffs on each other. Global supply chains disrupted.', concepts: ['Comparative Advantage','Trade Balance','AD effects'], policies: ['trade','fiscal'] },
+  { id: 'c15', unit: 'Unit 6', icon: '🌊', title: 'Capital Flight', desc: 'Rising US rates pull investment capital out of emerging markets. EM currencies plunge.', concepts: ['Capital Account','Exchange Rate','Interest Rate Parity'], policies: ['monetary','exchange-rate'] },
+  { id: 'c16', unit: 'Unit 6', icon: '🤝', title: 'Free Trade Agreement', desc: 'Two blocs sign a sweeping trade deal. Winners and losers emerge. Analyze CA & FA accounts.', concepts: ['Balance of Payments','Current Account','Trade Policy'], policies: ['trade'] },
+];
+
+const POLICIES = {
+  fiscal: [
+    { id: 'exp_fiscal', type: 'fiscal', label: 'Expansionary Fiscal', title: 'Increase Government Spending', desc: 'Raise government expenditure or cut taxes to stimulate AD. Risks: deficit spending, crowding out.' },
+    { id: 'con_fiscal', type: 'fiscal', label: 'Contractionary Fiscal', title: 'Reduce Spending / Raise Taxes', desc: 'Decrease government spending or raise taxes to reduce AD. Risks: recession, reduced output.' },
+  ],
+  monetary: [
+    { id: 'exp_mon', type: 'monetary', label: 'Expansionary Monetary', title: 'Lower Interest Rates / Buy Bonds', desc: 'Central bank lowers rates or buys securities (OMO). Increases money supply, stimulates investment.' },
+    { id: 'con_mon', type: 'monetary', label: 'Contractionary Monetary', title: 'Raise Interest Rates / Sell Bonds', desc: 'Central bank raises rates or sells securities. Decreases money supply, reduces inflationary pressure.' },
+  ],
+  trade: [
+    { id: 'free_trade', type: 'trade', label: 'Free Trade', title: 'Reduce / Eliminate Tariffs', desc: 'Open markets to international trade. Exploits comparative advantage; risks domestic job losses.' },
+    { id: 'protectionism', type: 'trade', label: 'Protectionism', title: 'Impose Tariffs / Quotas', desc: 'Protect domestic industries with barriers. Risks: trade retaliation, higher prices for consumers.' },
+  ],
+  'exchange-rate': [
+    { id: 'devalue', type: 'exchange-rate', label: 'Currency Devaluation', title: 'Weaken Exchange Rate', desc: 'Allow or engineer currency depreciation. Boosts net exports, but raises import costs and inflation.' },
+    { id: 'revalue', type: 'exchange-rate', label: 'Currency Appreciation', title: 'Strengthen Exchange Rate', desc: 'Support or let currency appreciate. Reduces import prices, controls inflation; hurts exporters.' },
+  ],
+};
+
+const REFERENCE_DATA = [
+  {
+    unit: 'Unit 3', color: '#2b4a7a',
+    title: 'National Income & Price Determination',
+    concepts: [
+      { tag: 'AD/AS', text: 'Aggregate Demand (C+I+G+NX) and Aggregate Supply determine price level and output. Shocks shift curves.' },
+      { tag: 'Multiplier', text: 'Spending Multiplier = 1/(1−MPC). A $1 increase in spending → more than $1 increase in GDP.' },
+      { tag: 'Output Gap', text: 'Recessionary gap: real GDP < potential. Inflationary gap: real GDP > potential.' },
+      { tag: 'SRAS Shifts', text: 'Input prices, productivity, and expectations shift SRAS. Supply shocks create stagflation.' },
+    ]
+  },
+  {
+    unit: 'Unit 4', color: '#c9a84c',
+    title: 'Financial Sector',
+    concepts: [
+      { tag: 'Money Supply', text: 'M1/M2. Central bank controls via OMO, discount rate, reserve requirement.' },
+      { tag: 'Money Mult.', text: 'Money Multiplier = 1/Reserve Ratio. Banks create money through fractional reserve lending.' },
+      { tag: 'Loanable Funds', text: 'Market for borrowing/lending. Supply = savings; Demand = investment. Determines real interest rate.' },
+      { tag: 'Fisher Effect', text: 'Nominal interest rate = Real rate + Expected inflation. Inflation erodes purchasing power of loans.' },
+    ]
+  },
+  {
+    unit: 'Unit 5', color: '#2d6e4e',
+    title: 'Long-Run Consequences of Stabilization',
+    concepts: [
+      { tag: 'Phillips Curve', text: 'Short-run inverse relationship between inflation and unemployment. Long-run: vertical at NAIRU.' },
+      { tag: 'Crowding Out', text: 'Government borrowing raises real interest rates, reducing private investment spending.' },
+      { tag: 'LRAS & Growth', text: 'Long-run growth requires LRAS shifts: more capital, technology, labor force growth.' },
+      { tag: 'Budget Policy', text: 'Deficits = expansionary; Surpluses = contractionary. National debt = cumulative deficits.' },
+    ]
+  },
+  {
+    unit: 'Unit 6', color: '#8b5cf6',
+    title: 'Open Economy Macroeconomics',
+    concepts: [
+      { tag: 'Balance of Pmts', text: 'Current Account (trade in goods/services) + Capital/Financial Account = 0.' },
+      { tag: 'Exchange Rates', text: 'Flexible: determined by supply/demand. Strong currency → cheap imports, expensive exports.' },
+      { tag: 'Net Exports', text: 'NX = Exports − Imports. Part of AD. Affected by exchange rate, income, and relative prices.' },
+      { tag: 'Capital Flows', text: 'Higher domestic interest rates attract foreign investment → currency appreciates.' },
+    ]
+  },
+];
+
+// ══════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════
+let currentMode = 'teacher';
+let currentRound = 1;
+let maxRounds = 5;
+let activeCrisis = null;
+let selectedCrisisId = null;
+let activeCountryId = COUNTRIES[0].id;
+let history = [];
+let cosponsorProposals = []; // [{from, to, policy, status: 'pending'|'accepted'|'declined'}]
+
+// ══════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════
+function init() {
+  renderCountryList();
+  renderOverviewTable();
+  renderCrisisGrid('all');
+  renderReference();
+  renderHistory();
+  renderProposalBoard();
+}
+
+function switchMode(mode) {
+  currentMode = mode;
+  const teacherDash = document.getElementById('teacherDashboard');
+  const studentView = document.getElementById('studentCountryView');
+  const dashTitle = document.getElementById('dashTitle');
+  const dashSubtitle = document.getElementById('dashSubtitle');
+  const avatarWrap = document.getElementById('teacherAvatarWrap');
+
+  if (mode === 'teacher') {
+    teacherDash.style.display = 'block';
+    studentView.style.display = 'none';
+    if (avatarWrap) avatarWrap.style.display = 'flex';
+    dashTitle.textContent = 'Teacher Dashboard';
+    dashSubtitle.textContent = 'Monitor all countries · impose economic events · advance rounds';
+  } else {
+    teacherDash.style.display = 'none';
+    studentView.style.display = 'block';
+    if (avatarWrap) avatarWrap.style.display = 'none';
+    dashTitle.textContent = 'Country Dashboard';
+    dashSubtitle.textContent = 'Review your economic indicators · respond to the active event';
+    renderStudentView(activeCountryId);
+  }
+}
+
+// ══════════════════════════════════════════════════
+//  SIDEBAR
+// ══════════════════════════════════════════════════
+function renderCountryList() {
+  const list = document.getElementById('countryList');
+  list.innerHTML = COUNTRIES.map(c => {
+    const stats = countryStats[c.id];
+    const statusClass = stats.responded ? 'responded' : (activeCrisis ? 'pending' : '');
+    return `<div class="country-item ${activeCountryId === c.id ? 'active' : ''}" onclick="selectCountry('${c.id}')">
+      <span class="country-flag">${c.flag}</span>
+      <span class="country-name">${c.name}</span>
+      <span class="country-status ${statusClass}"></span>
+    </div>`;
+  }).join('');
+}
+
+function selectCountry(id) {
+  activeCountryId = id;
+  renderCountryList();
+  if (currentMode === 'student') renderStudentView(id);
+  if (currentMode === 'teacher') renderResponseSummary();
+  showTab('dashboard');
+}
+
+// ══════════════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════════════
+function showTab(tab) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + tab).classList.add('active');
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  const navMap = { dashboard: 'navDashboard', events: 'navEvents', history: 'navHistory', reference: 'navReference', assess: 'navAssess' };
+  if (navMap[tab]) document.getElementById(navMap[tab])?.classList.add('active');
+  if (tab === 'assess') { renderScoringRows(); renderDebriefCards(); renderHeatmap(); }
+}
+
+// ══════════════════════════════════════════════════
+//  TEACHER DASHBOARD
+// ══════════════════════════════════════════════════
+function renderOverviewTable() {
+  const tbody = document.getElementById('overviewBody');
+  tbody.innerHTML = COUNTRIES.map(c => {
+    const s = countryStats[c.id];
+    const gdpClass = parseFloat(s.gdp) > 2 ? 'stat-up' : parseFloat(s.gdp) < 0 ? 'stat-down' : 'stat-neutral';
+    const infClass = parseFloat(s.inflation) > 4 ? 'stat-down' : parseFloat(s.inflation) < 1 ? 'stat-up' : 'stat-neutral';
+    const unClass  = parseFloat(s.unemployment) > 6 ? 'stat-down' : parseFloat(s.unemployment) < 4 ? 'stat-up' : 'stat-neutral';
+    const tradeClass = parseFloat(s.trade) > 0 ? 'stat-up' : 'stat-down';
+    const status = s.responded
+      ? `<span style="color:var(--green);font-weight:600;font-size:0.75rem;">✓ Responded</span>`
+      : (activeCrisis ? `<span style="color:#e8a020;font-size:0.75rem;">⏳ Pending</span>` : `<span style="color:var(--gray);font-size:0.75rem;">— Awaiting event</span>`);
+    return `<tr>
+      <td><strong>${c.flag} ${c.name}</strong></td>
+      <td class="${gdpClass}">${s.gdp}%</td>
+      <td class="${infClass}">${s.inflation}%</td>
+      <td class="${unClass}">${s.unemployment}%</td>
+      <td>${s.interest}%</td>
+      <td class="${tradeClass}">${parseFloat(s.trade) > 0 ? '+' : ''}${s.trade}%</td>
+      <td>${status}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderResponseSummary() {
+  const div = document.getElementById('responseSummary');
+  if (!activeCrisis) { div.innerHTML = '<em>No active event this round.</em>'; return; }
+  const responded = COUNTRIES.filter(c => countryStats[c.id].responded);
+  if (responded.length === 0) { div.innerHTML = '<em>No responses yet this round.</em>'; return; }
+  div.innerHTML = responded.map(c => {
+    const s = countryStats[c.id];
+    const crisis = CRISES.find(x => x.id === activeCrisis);
+    return `<div style="padding:0.8rem;border:1px solid var(--border);margin-bottom:0.6rem;background:var(--cream);">
+      <strong>${c.flag} ${c.name}</strong> &nbsp;
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--blue);">${s.selectedPolicy || '—'}</span>
+      <p style="font-size:0.78rem;color:var(--gray);margin-top:0.4rem;">${s.justification || '<em>No written justification provided.</em>'}</p>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════
+//  STUDENT VIEW
+// ══════════════════════════════════════════════════
+function renderStudentView(countryId) {
+  const country = COUNTRIES.find(c => c.id === countryId);
+  const s = countryStats[countryId];
+
+  // Header
+  document.getElementById('studentHeader').innerHTML = `
+    <div class="country-header-flag">${country.flag}</div>
+    <div>
+      <div class="country-header-name">${country.name}</div>
+      <div class="country-header-role">${country.role} · Round ${currentRound} of ${maxRounds}</div>
+    </div>
+    <div style="margin-left:auto;text-align:right;">
+      ${s.responded ? '<span class="submitted-badge">✓ RESPONSE SUBMITTED</span>' : (activeCrisis ? '<span style="background:#fff3cd;border:1px solid #e8a020;color:#8a5700;padding:0.4rem 0.8rem;font-family:IBM Plex Mono,monospace;font-size:0.7rem;">⏳ RESPONSE REQUIRED</span>' : '')}
+    </div>
+  `;
+
+  // Crisis alert
+  const alertDiv = document.getElementById('currentCrisisAlert');
+  if (activeCrisis) {
+    const crisis = CRISES.find(c => c.id === activeCrisis);
+    alertDiv.innerHTML = `<div class="crisis-alert">
+      <div class="crisis-alert-icon">${crisis.icon}</div>
+      <div>
+        <div class="crisis-alert-unit">${crisis.unit} · Active Event</div>
+        <div class="crisis-alert-title">${crisis.title}</div>
+        <div class="crisis-alert-body">${crisis.desc}</div>
+        <div class="concept-tags" style="margin-top:0.8rem;">
+          ${crisis.concepts.map(t => `<span class="concept-tag active">${t}</span>`).join('')}
+        </div>
+      </div>
+    </div>`;
+  } else {
+    alertDiv.innerHTML = `<div style="background:var(--cream);border:1px solid var(--border);padding:1rem 1.5rem;margin-bottom:1.5rem;font-size:0.85rem;color:var(--gray);">
+      ⏸ No active event yet. Awaiting teacher to impose an economic event...
+    </div>`;
+  }
+
+  // Indicators
+  const ig = document.getElementById('indicatorsGrid');
+  const gdpChange = s.prevGdp !== null ? (parseFloat(s.gdp) - parseFloat(s.prevGdp)).toFixed(1) : null;
+  ig.innerHTML = `
+    ${indicator('gdp','GDP Growth', s.gdp, '%', gdpChange)}
+    ${indicator('inflation','Inflation Rate', s.inflation, '%', null)}
+    ${indicator('unemployment','Unemployment', s.unemployment, '%', null)}
+    ${indicator('interest','Interest Rate', s.interest, '%', null)}
+    ${indicator('trade','Trade Balance', s.trade, '% of GDP', null)}
+    ${indicator('exchange','Exchange Rate', s.exchange, '', null)}
+  `;
+
+  // Policy section
+  renderPolicySection(countryId);
+}
+
+function indicator(cls, label, value, unit, change) {
+  const numVal = parseFloat(value);
+  const isNeg = numVal < 0;
+  let changeHtml = '';
+  if (change !== null && change !== undefined) {
+    const c = parseFloat(change);
+    changeHtml = `<div class="indicator-change" style="color:${c >= 0 ? 'var(--green)' : 'var(--red)'}">
+      ${c >= 0 ? '▲' : '▼'} ${Math.abs(c)}${unit} from last round
+    </div>`;
+  }
+  return `<div class="indicator-card ${cls}">
+    <div class="indicator-label">${label}</div>
+    <div class="indicator-value" style="color:${cls==='inflation'&&numVal>5?'var(--red)':cls==='unemployment'&&numVal>6?'var(--red)':'var(--ink)'}">
+      ${value}<span class="indicator-unit">${unit}</span>
+    </div>
+    ${changeHtml}
+  </div>`;
+}
+
+function renderPolicySection(countryId) {
+  const s = countryStats[countryId];
+  const ps = document.getElementById('policySection');
+  if (!activeCrisis) { ps.innerHTML = ''; return; }
+
+  const crisis = CRISES.find(c => c.id === activeCrisis);
+  const relevantTypes = crisis.policies;
+
+  let policiesHtml = relevantTypes.map(type => {
+    const opts = POLICIES[type] || [];
+    return opts.map(p => {
+      const isSelected = s.selectedPolicy === p.id;
+      return `<div class="policy-option ${isSelected ? 'selected' : ''}" onclick="selectPolicy('${countryId}','${p.id}')">
+        <div class="policy-type ${p.type}">${p.type.toUpperCase()} POLICY</div>
+        <div class="policy-title">${p.title}</div>
+        <div class="policy-desc">${p.desc}</div>
+      </div>`;
+    }).join('');
+  }).join('');
+
+  ps.innerHTML = `
+    <div class="policy-section">
+      <h2>Your Policy Response</h2>
+      <p class="policy-subtitle">Choose the most appropriate policy for your country's situation. Consider your economic indicators and the event's effects.</p>
+      <div class="policy-grid">${policiesHtml}</div>
+
+      <div class="justification-area">
+        <label>Economic Justification — Explain your reasoning using AP Macro concepts</label>
+        <textarea id="justText" placeholder="Example: I chose expansionary monetary policy because the oil supply shock caused a leftward shift in SRAS, creating a recessionary gap. By lowering the federal funds rate, the central bank increases the money supply, shifting AD right to close the gap. However, I recognize this may worsen inflation in the short run..."
+          oninput="saveJustification('${countryId}');updateWordCount()">${s.justification || ''}</textarea>
+        <div class="word-count" id="wordCountLabel">0 words</div>
+      </div>
+
+      <!-- Confidence Check -->
+      <div style="margin-top:1rem;">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:0.5rem;">How confident are you in this choice?</div>
+        <div class="confidence-row">
+          <div class="conf-btn ${s.confidence==='high'?'selected-high':''}" onclick="setConfidence('${countryId}','high',this)">🟢 Very Confident</div>
+          <div class="conf-btn ${s.confidence==='med'?'selected-med':''}"  onclick="setConfidence('${countryId}','med',this)">🟡 Somewhat Unsure</div>
+          <div class="conf-btn ${s.confidence==='low'?'selected-low':''}"  onclick="setConfidence('${countryId}','low',this)">🔴 Not Sure</div>
+        </div>
+      </div>
+
+      <!-- Self-Assessment Rubric -->
+      <div class="rubric-box" id="rubricBox">
+        <div class="rubric-box-title">✅ Self-Assessment Checklist — Check off each criterion you believe you met</div>
+        ${RUBRIC_CRITERIA.map((c,i) => `
+          <div class="rubric-item">
+            <div class="rubric-check ${(s.rubric||[])[i]?'checked':''}" id="rcheck_${i}" onclick="toggleRubric('${countryId}',${i})">${(s.rubric||[])[i]?'✓':''}</div>
+            <span>${c}</span>
+          </div>`).join('')}
+        <div class="rubric-score-bar"><div class="rubric-score-fill" id="rubricFill" style="width:${getRubricPct(s)}%"></div></div>
+        <div class="rubric-score-label" id="rubricScore">${(s.rubric||[]).filter(Boolean).length} / ${RUBRIC_CRITERIA.length} criteria met · Estimated ${Math.round(getRubricPct(s)/100*10)}/10</div>
+      </div>
+
+      ${renderCosponsorBox(countryId)}
+
+      <div style="display:flex;align-items:center;gap:1rem;margin-top:1rem;">
+        <button class="btn btn-gold" onclick="submitResponse('${countryId}')" ${s.responded ? 'disabled' : ''}>
+          ${s.responded ? '✓ Response Submitted' : '📤 Submit Response'}
+        </button>
+        ${s.selectedPolicy && !s.responded ? `<button class="btn btn-dark" onclick="getAIFeedback('${countryId}')">🤖 Get AI Feedback</button>` : ''}
+      </div>
+      <div id="aiFeedbackArea"></div>
+      ${s.responded ? renderConsequencePanel(countryId) : ''}
+      ${s.responded ? renderCompareBanner(countryId) : ''}
+    </div>`;
+
+  // restore word count
+  setTimeout(() => updateWordCount(), 50);
+}
+
+function selectPolicy(countryId, policyId) {
+  if (countryStats[countryId].responded) return;
+  countryStats[countryId].selectedPolicy = policyId;
+  renderPolicySection(countryId);
+}
+
+function saveJustification(countryId) {
+  const ta = document.getElementById('justText');
+  if (ta) countryStats[countryId].justification = ta.value;
+}
+
+function submitResponse(countryId) {
+  const ta = document.getElementById('justText');
+  if (ta) countryStats[countryId].justification = ta.value;
+  if (!countryStats[countryId].selectedPolicy) { alert('Please select a policy option first.'); return; }
+  countryStats[countryId].responded = true;
+  applyPolicyEffects(countryId);
+  history.push({
+    round: currentRound,
+    type: 'decision',
+    country: COUNTRIES.find(c => c.id === countryId),
+    policy: countryStats[countryId].selectedPolicy,
+    justification: countryStats[countryId].justification,
+    crisis: activeCrisis,
+  });
+  renderCountryList();
+  renderStudentView(countryId);
+  renderOverviewTable();
+  renderResponseSummary();
+  renderProposalBoard();
+}
+
+function applyPolicyEffects(countryId) {
+  const s = countryStats[countryId];
+  const policy = s.selectedPolicy;
+  const crisis = CRISES.find(c => c.id === activeCrisis);
+  s.prevGdp = s.gdp; s.prevInflation = s.inflation; s.prevUnemployment = s.unemployment;
+
+  // Base magnitude: much larger, crisis-unit specific, with variance
+  const base = () => (Math.random() * 1.2 + 0.8);   // 0.8–2.0 base effect
+  const small = () => (Math.random() * 0.5 + 0.2);   // 0.2–0.7 secondary
+  const cosBonus = s.cosponsorBonus ? 1.6 : 1.0;     // 60% amplification for co-sponsored plans
+
+  // Crisis-type modifier: some crises make certain policies more/less effective
+  const crisisUnit = crisis?.unit || '';
+  const supplyShock = activeCrisis === 'c3' || activeCrisis === 'c11';
+  const financialCrisis = activeCrisis === 'c5' || activeCrisis === 'c7';
+  const tradeEvent = activeCrisis === 'c13' || activeCrisis === 'c14' || activeCrisis === 'c16';
+
+  const b = (n) => parseFloat((n * cosBonus).toFixed(1));
+
+  if (policy === 'exp_fiscal') {
+    const gdpGain = b(base());
+    const infGain = b(base() * 0.8);
+    const unDrop = b(base() * 0.7);
+    s.gdp = (parseFloat(s.gdp) + gdpGain).toFixed(1);
+    s.inflation = (parseFloat(s.inflation) + infGain).toFixed(1);
+    s.unemployment = Math.max(2, parseFloat(s.unemployment) - unDrop).toFixed(1);
+    s.interest = (parseFloat(s.interest) + b(small())*0.5).toFixed(1); // crowding out
+    s.policyNarrative = `Government spending surge pushed AD right by an estimated ${gdpGain}pp. The spending multiplier amplified output growth, but inflation rose ${infGain}pp as the economy heated up. Watch for crowding out of private investment.`;
+  }
+  if (policy === 'con_fiscal') {
+    const gdpDrop = b(base());
+    const infDrop = b(base() * 0.9);
+    const unRise = b(base() * 0.8);
+    s.gdp = (parseFloat(s.gdp) - gdpDrop).toFixed(1);
+    s.inflation = Math.max(0, parseFloat(s.inflation) - infDrop).toFixed(1);
+    s.unemployment = (parseFloat(s.unemployment) + unRise).toFixed(1);
+    s.policyNarrative = `Spending cuts contracted AD, reducing inflation by ${infDrop}pp but causing GDP to fall ${gdpDrop}pp and unemployment to rise ${unRise}pp. The Phillips Curve trade-off in action.`;
+  }
+  if (policy === 'exp_mon') {
+    const gdpGain = b(base() * (financialCrisis ? 0.5 : 1.0)); // less effective in credit crunch
+    const infGain = b(base() * 1.1);
+    const intDrop = b(base() * 0.9);
+    s.gdp = (parseFloat(s.gdp) + gdpGain).toFixed(1);
+    s.inflation = (parseFloat(s.inflation) + infGain).toFixed(1);
+    s.interest = Math.max(0.1, parseFloat(s.interest) - intDrop).toFixed(1);
+    s.unemployment = Math.max(2, parseFloat(s.unemployment) - b(small())*0.6).toFixed(1);
+    s.policyNarrative = financialCrisis
+      ? `Low rates helped, but credit market dysfunction limited transmission — GDP rose only ${gdpGain}pp. Inflation still climbed ${infGain}pp. Liquidity trap risk is real.`
+      : `Rate cuts increased money supply and stimulated investment. GDP rose ${gdpGain}pp, but inflation accelerated ${infGain}pp. The loanable funds market shifted right.`;
+  }
+  if (policy === 'con_mon') {
+    const infDrop = b(base() * (supplyShock ? 0.6 : 1.0)); // fighting supply shock with tight money is costly
+    const gdpDrop = b(base() * 0.7);
+    const intRise = b(base() * 1.0);
+    s.inflation = Math.max(0, parseFloat(s.inflation) - infDrop).toFixed(1);
+    s.interest = (parseFloat(s.interest) + intRise).toFixed(1);
+    s.gdp = (parseFloat(s.gdp) - gdpDrop).toFixed(1);
+    s.policyNarrative = supplyShock
+      ? `Contractionary monetary policy fighting a supply shock — the classic stagflation dilemma. Inflation fell ${infDrop}pp but GDP dropped ${gdpDrop}pp. This worsened the output gap.`
+      : `Rate hikes reduced AD and cooled inflation by ${infDrop}pp. GDP contracted ${gdpDrop}pp. Higher real interest rates crowded out investment.`;
+  }
+  if (policy === 'free_trade') {
+    const tradeGain = b(base() * 1.2);
+    const gdpGain = b(base() * 0.7);
+    s.trade = (parseFloat(s.trade) + tradeGain).toFixed(1);
+    s.gdp = (parseFloat(s.gdp) + gdpGain).toFixed(1);
+    s.inflation = Math.max(0, parseFloat(s.inflation) - b(small())*0.5).toFixed(1); // cheaper imports
+    s.policyNarrative = `Trade liberalization boosted net exports by ${tradeGain}pp of GDP. Comparative advantage gains raised GDP ${gdpGain}pp. Cheaper imports slightly reduced domestic inflation.`;
+    // Spillover: other protectionist countries lose trade
+    applySpillover(countryId, 'free_trade');
+  }
+  if (policy === 'protectionism') {
+    const tradeDrop = b(base() * 0.8);
+    const infRise = b(base() * 0.9);
+    s.trade = (parseFloat(s.trade) - tradeDrop * 0.4).toFixed(1); // small gain short-term
+    s.inflation = (parseFloat(s.inflation) + infRise).toFixed(1);
+    s.gdp = (parseFloat(s.gdp) - b(small())*0.4).toFixed(1);
+    s.policyNarrative = `Tariffs raised import prices, pushing inflation up ${infRise}pp. Short-run trade balance shifted slightly, but GDP fell ${b(small()*0.4)}pp as retaliation risk looms.`;
+    applySpillover(countryId, 'protectionism');
+  }
+  if (policy === 'devalue') {
+    const tradeGain = b(base() * 1.3);
+    const infRise = b(base() * 1.1);
+    s.trade = (parseFloat(s.trade) + tradeGain).toFixed(1);
+    s.exchange = 'Depreciated';
+    s.inflation = (parseFloat(s.inflation) + infRise).toFixed(1);
+    s.gdp = (parseFloat(s.gdp) + b(small())*0.5).toFixed(1);
+    s.policyNarrative = `Currency depreciation made exports cheaper globally, boosting trade balance ${tradeGain}pp. But import costs surged, raising inflation ${infRise}pp. Classic J-curve dynamics apply.`;
+    applySpillover(countryId, 'devalue');
+  }
+  if (policy === 'revalue') {
+    const infDrop = b(base() * 0.8);
+    s.exchange = 'Appreciated';
+    s.inflation = Math.max(0, parseFloat(s.inflation) - infDrop).toFixed(1);
+    s.trade = (parseFloat(s.trade) - b(small())*0.8).toFixed(1); // exports more expensive
+    s.gdp = (parseFloat(s.gdp) - b(small())*0.4).toFixed(1);
+    s.policyNarrative = `Stronger currency made imports cheaper, cooling inflation by ${infDrop}pp. But exports became less competitive, hurting the trade balance and GDP slightly.`;
+  }
+
+  // Hard thresholds — create dramatic "danger" states
+  if (parseFloat(s.inflation) > 12) { s.inflationCrisis = true; }
+  if (parseFloat(s.unemployment) > 12) { s.unemploymentCrisis = true; }
+  if (parseFloat(s.gdp) < -2) { s.recessionCrisis = true; }
+}
+
+function applySpillover(sourceId, policy) {
+  const sourceCountry = COUNTRIES.find(c => c.id === sourceId);
+  COUNTRIES.forEach(c => {
+    if (c.id === sourceId) return;
+    const t = countryStats[c.id];
+    if (policy === 'free_trade') {
+      // Free trade benefits trading partners too
+      t.trade = (parseFloat(t.trade) + (Math.random()*0.4+0.1)).toFixed(1);
+    }
+    if (policy === 'protectionism') {
+      // Protectionism hurts trading partners
+      t.trade = (parseFloat(t.trade) - (Math.random()*0.5+0.2)).toFixed(1);
+      t.gdp = (parseFloat(t.gdp) - (Math.random()*0.3+0.1)).toFixed(1);
+    }
+    if (policy === 'devalue') {
+      // Currency war: competitors lose export competitiveness
+      t.trade = (parseFloat(t.trade) - (Math.random()*0.3+0.1)).toFixed(1);
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════
+//  AI FEEDBACK
+// ══════════════════════════════════════════════════
+async function getAIFeedback(countryId) {
+  const s = countryStats[countryId];
+  const country = COUNTRIES.find(c => c.id === countryId);
+  const crisis = CRISES.find(c => c.id === activeCrisis);
+  const policyObj = Object.values(POLICIES).flat().find(p => p.id === s.selectedPolicy);
+  const justification = document.getElementById('justText')?.value || '';
+
+  const area = document.getElementById('aiFeedbackArea');
+  area.innerHTML = `<div class="ai-feedback" style="margin-top:1rem;">
+    <div class="ai-feedback-header"><span class="loading-spinner"></span> Analyzing your response...</div>
+  </div>`;
+
+  const prompt = `You are an AP Macroeconomics teacher grading a Model UN simulation response.
+
+Country: ${country.name} (${country.role})
+Current stats: GDP Growth: ${s.gdp}%, Inflation: ${s.inflation}%, Unemployment: ${s.unemployment}%, Interest Rate: ${s.interest}%, Trade Balance: ${s.trade}%
+
+Active Economic Event (${crisis.unit}): "${crisis.title}" — ${crisis.desc}
+Relevant AP Macro Concepts: ${crisis.concepts.join(', ')}
+
+Student's Policy Choice: ${policyObj?.title || s.selectedPolicy}
+Student's Written Justification: "${justification || '[none provided]'}"
+
+Provide brief AP Macroeconomics feedback (3-4 sentences) that:
+1. Evaluates if the policy choice is appropriate for this country's situation
+2. Identifies which AP Macro concepts they correctly applied (or missed)
+3. Points out one trade-off or unintended consequence they should consider
+4. References the specific Unit (3, 4, 5, or 6) concepts
+
+Be encouraging but rigorous. Use proper AP Macro terminology.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content?.map(i => i.text || '').join('') || 'Unable to generate feedback.';
+    area.innerHTML = `<div class="ai-feedback" style="margin-top:1rem;">
+      <div class="ai-feedback-header">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 100 100" style="border-radius:50%;border:1px solid var(--green);flex-shrink:0;">
+          <circle cx="50" cy="50" r="50" fill="#1a2a4a"/>
+          <ellipse cx="50" cy="88" rx="30" ry="20" fill="#2b4a7a"/>
+          <rect x="22" y="72" width="56" height="28" rx="4" fill="#2b4a7a"/>
+          <rect x="44" y="60" width="12" height="14" rx="2" fill="#f0c8a0"/>
+          <ellipse cx="50" cy="45" rx="19" ry="21" fill="#f0c8a0"/>
+          <ellipse cx="50" cy="27" rx="19" ry="9" fill="#6b3a1f"/>
+          <rect x="31" y="27" width="38" height="10" fill="#6b3a1f"/>
+          <rect x="31" y="27" width="6" height="18" rx="3" fill="#6b3a1f"/>
+          <rect x="63" y="27" width="6" height="18" rx="3" fill="#6b3a1f"/>
+          <ellipse cx="31" cy="46" rx="4" ry="5" fill="#f0c8a0"/>
+          <ellipse cx="69" cy="46" rx="4" ry="5" fill="#f0c8a0"/>
+          <ellipse cx="41" cy="44" rx="5" ry="3.5" fill="white"/>
+          <ellipse cx="59" cy="44" rx="5" ry="3.5" fill="white"/>
+          <circle cx="41" cy="44" r="2.5" fill="#4a7ab5"/>
+          <circle cx="59" cy="44" r="2.5" fill="#4a7ab5"/>
+          <circle cx="41.5" cy="43.5" r="1.2" fill="#0d0d0d"/>
+          <circle cx="59.5" cy="43.5" r="1.2" fill="#0d0d0d"/>
+          <path d="M44 59 Q50 63 56 59" stroke="#c07050" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <ellipse cx="50" cy="62" rx="12" ry="4" fill="#7a4422" opacity="0.25"/>
+        </svg>
+        AP Macro Teacher Feedback</div>
+      <div class="ai-feedback-body">${text.replace(/\n/g, '<br>')}</div>
+    </div>`;
+  } catch (e) {
+    area.innerHTML = `<div class="ai-feedback" style="margin-top:1rem;">
+      <div class="ai-feedback-header" style="color:var(--red);">⚠ Feedback unavailable</div>
+      <div class="ai-feedback-body">Could not connect to AI service. Proceed with your response.</div>
+    </div>`;
+  }
+}
+
+// ══════════════════════════════════════════════════
+//  EVENTS / CRISES
+// ══════════════════════════════════════════════════
+function renderCrisisGrid(filter) {
+  const grid = document.getElementById('crisisGrid');
+  const filtered = filter === 'all' ? CRISES : CRISES.filter(c => c.unit === filter);
+  grid.innerHTML = filtered.map(c => `
+    <div class="crisis-card ${selectedCrisisId === c.id ? 'selected' : ''}" onclick="selectCrisis('${c.id}')">
+      <div class="crisis-unit">${c.unit} · ${c.concepts.slice(0,2).join(', ')}</div>
+      <div class="crisis-title">${c.icon} ${c.title}</div>
+      <div class="crisis-desc">${c.desc}</div>
+    </div>
+  `).join('');
+}
+
+function filterCrises(filter, el) {
+  document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderCrisisGrid(filter);
+}
+
+function selectCrisis(id) {
+  selectedCrisisId = id;
+  document.getElementById('imposeCrisisBtn').disabled = false;
+  renderCrisisGrid(document.querySelector('.tabs .tab.active')?.textContent.trim().startsWith('All') ? 'all' : document.querySelector('.tabs .tab.active')?.textContent.trim());
+  const crisis = CRISES.find(c => c.id === id);
+  document.getElementById('selectedCrisisPreview').innerHTML = `
+    <div class="active-crisis-banner">
+      <span style="font-size:1.5rem;">${crisis.icon}</span>
+      <div><strong>${crisis.title}</strong><br><span>${crisis.unit} · Concepts: ${crisis.concepts.join(' · ')}</span></div>
+    </div>`;
+}
+
+function imposeCrisis() {
+  if (!selectedCrisisId) return;
+  activeCrisis = selectedCrisisId;
+  COUNTRIES.forEach(c => { countryStats[c.id].responded = false; countryStats[c.id].selectedPolicy = null; countryStats[c.id].justification = ''; countryStats[c.id].confidence = null; countryStats[c.id].rubric = new Array(6).fill(false); countryStats[c.id].teacherScore = undefined; countryStats[c.id].dimScores = [0,0,0,0]; countryStats[c.id].teacherAnnotation=''; countryStats[c.id].aiScoreComment = ''; countryStats[c.id].cosponsorPartners=[]; countryStats[c.id].cosponsorProposed=[]; countryStats[c.id].cosponsorBonus=false; });
+  cosponsorProposals = [];
+  const crisis = CRISES.find(c => c.id === activeCrisis);
+  history.push({ round: currentRound, type: 'crisis', crisis });
+
+  document.getElementById('activeCrisisBanner').style.display = 'flex';
+  document.getElementById('activeCrisisBanner').innerHTML = `
+    <div class="active-crisis-banner">
+      <span style="font-size:1.5rem;">${crisis.icon}</span>
+      <div><strong>Active Event: ${crisis.title}</strong><br>
+      <span>${crisis.unit} · ${crisis.desc.substring(0,80)}...</span></div>
+    </div>`;
+
+  renderCountryList();
+  renderOverviewTable();
+  renderHistory();
+  renderProposalBoard();
+  showTab('dashboard');
+  switchMode(currentMode);
+}
+
+// ══════════════════════════════════════════════════
+//  ROUNDS
+// ══════════════════════════════════════════════════
+function advanceRound() {
+  if (currentRound >= maxRounds) { alert('Simulation complete! All rounds finished.'); return; }
+  currentRound++;
+  activeCrisis = null;
+  selectedCrisisId = null;
+  document.getElementById('roundBadge').textContent = `ROUND ${currentRound} OF ${maxRounds}`;
+  document.getElementById('activeCrisisBanner').style.display = 'none';
+  COUNTRIES.forEach(c => { countryStats[c.id].responded = false; });
+  renderOverviewTable();
+  renderCountryList();
+  renderResponseSummary();
+  if (currentMode === 'student') renderStudentView(activeCountryId);
+  alert(`Round ${currentRound} started! Impose a new economic event.`);
+}
+
+// ══════════════════════════════════════════════════
+//  HISTORY
+// ══════════════════════════════════════════════════
+function renderHistory() {
+  const log = document.getElementById('historyLog');
+  if (history.length === 0) { log.innerHTML = '<p style="color:var(--gray);font-size:0.85rem;">No events yet. Start by imposing an economic event.</p>'; return; }
+  log.innerHTML = [...history].reverse().map(h => {
+    if (h.type === 'crisis') {
+      const crisis = h.crisis;
+      return `<div class="history-entry crisis">
+        <div class="history-round">Round ${h.round} · Economic Event</div>
+        <div class="history-title">${crisis.icon} ${crisis.title}</div>
+        <div class="history-body">${crisis.unit} · ${crisis.desc}</div>
+      </div>`;
+    } else {
+      const policyObj = Object.values(POLICIES).flat().find(p => p.id === h.policy);
+      return `<div class="history-entry decision">
+        <div class="history-round">Round ${h.round} · ${h.country.flag} ${h.country.name} — Policy Decision</div>
+        <div class="history-title">${policyObj?.title || h.policy}</div>
+        <div class="history-body">${h.justification || '<em>No justification provided.</em>'}</div>
+      </div>`;
+    }
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════
+//  REFERENCE
+// ══════════════════════════════════════════════════
+function renderReference() {
+  const div = document.getElementById('referenceContent');
+  div.innerHTML = REFERENCE_DATA.map(unit => `
+    <div class="concept-ref" style="border-top-color:${unit.color}">
+      <div class="concept-ref-title" style="color:${unit.color}">${unit.unit} · ${unit.title}</div>
+      <div class="concept-list">
+        ${unit.concepts.map(c => `<div class="concept-item">
+          <span class="concept-item-tag" style="background:${unit.color}">${c.tag}</span>
+          <span class="concept-item-text">${c.text}</span>
+        </div>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ══════════════════════════════════════════════════
+//  RUBRIC & CONFIDENCE
+// ══════════════════════════════════════════════════
+const RUBRIC_CRITERIA = [
+  'I identified the type of economic shock (demand or supply)',
+  'I connected the event to a specific AP Macro concept (e.g. AD/AS, Phillips Curve)',
+  'I explained HOW my policy addresses the crisis mechanism',
+  'I named at least one trade-off or unintended consequence',
+  'I referenced my country\'s specific economic indicators in my reasoning',
+  'I used correct AP Macro terminology throughout',
+];
+
+function getRubricPct(s) {
+  const checked = (s.rubric||[]).filter(Boolean).length;
+  return Math.round((checked / RUBRIC_CRITERIA.length) * 100);
+}
+
+function toggleRubric(countryId, idx) {
+  const s = countryStats[countryId];
+  if (!s.rubric) s.rubric = new Array(RUBRIC_CRITERIA.length).fill(false);
+  if (s.responded) return; // locked after submit
+  s.rubric[idx] = !s.rubric[idx];
+  const el = document.getElementById('rcheck_' + idx);
+  if (el) { el.classList.toggle('checked', s.rubric[idx]); el.textContent = s.rubric[idx] ? '✓' : ''; }
+  const pct = getRubricPct(s);
+  const fill = document.getElementById('rubricFill');
+  const lbl = document.getElementById('rubricScore');
+  if (fill) fill.style.width = pct + '%';
+  if (lbl) lbl.textContent = `${s.rubric.filter(Boolean).length} / ${RUBRIC_CRITERIA.length} criteria met · Estimated ${Math.round(pct/100*10)}/10`;
+}
+
+function setConfidence(countryId, level, el) {
+  if (countryStats[countryId].responded) return;
+  countryStats[countryId].confidence = level;
+  document.querySelectorAll('.conf-btn').forEach(b => b.className = 'conf-btn');
+  el.className = `conf-btn selected-${level}`;
+}
+
+function updateWordCount() {
+  const ta = document.getElementById('justText');
+  const lbl = document.getElementById('wordCountLabel');
+  if (!ta || !lbl) return;
+  const words = ta.value.trim() ? ta.value.trim().split(/\s+/).length : 0;
+  lbl.textContent = `${words} word${words!==1?'s':''}`;
+  lbl.className = words >= 50 ? 'word-count good' : words >= 20 ? 'word-count warn' : 'word-count';
+}
+
+function renderConsequencePanel(countryId) {
+  const s = countryStats[countryId];
+  const gdpDelta = s.prevGdp !== null ? (parseFloat(s.gdp) - parseFloat(s.prevGdp)).toFixed(1) : null;
+  const infDelta = s.prevInflation !== null ? (parseFloat(s.inflation) - parseFloat(s.prevInflation)).toFixed(1) : null;
+  const unDelta  = s.prevUnemployment !== null ? (parseFloat(s.unemployment) - parseFloat(s.prevUnemployment)).toFixed(1) : null;
+
+  const stat = (label, val, delta, unit='%') => {
+    const d = parseFloat(delta);
+    const cls = isNaN(d) ? '' : d > 0 ? 'up' : d < 0 ? 'down' : '';
+    const arrow = isNaN(d) ? '' : d > 0 ? '▲' : d < 0 ? '▼' : '→';
+    const bg = isNaN(d) ? '' : Math.abs(d) > 1.5 ? (d>0?'#edfff4':'#fff0f0') : '';
+    return `<div class="consequence-stat" style="background:${bg||'white'};">
+      <div class="consequence-stat-label">${label}</div>
+      <div class="consequence-stat-val">${val}${unit}</div>
+      ${delta !== null ? `<div class="consequence-stat-change ${cls}">${arrow} ${Math.abs(d)}${unit}</div>` : ''}
+    </div>`;
+  };
+
+  const cosponsorLine = s.cosponsorBonus
+    ? `<div class="cosponsor-badge" style="margin-bottom:0.6rem;">🤝 Co-Sponsored Plan <span class="cosponsor-bonus">+60% Effect Bonus Applied</span></div>`
+    : '';
+
+  const narrative = s.policyNarrative
+    ? `<div style="font-size:0.8rem;color:var(--ink);line-height:1.6;padding:0.8rem;background:#f8f8f0;border-left:3px solid var(--gold);margin-bottom:0.8rem;">${s.policyNarrative}</div>`
+    : '';
+
+  const spilloverNote = cosponsorProposals.some(p => p.status === 'accepted')
+    ? `<div class="spillover-notice">🌐 <strong>Spillover Effects Active:</strong> Your policy choices are affecting other countries' trade balances and economic indicators this round.</div>`
+    : '';
+
+  const dangerAlerts = [
+    s.inflationCrisis ? `🚨 <strong>Hyperinflation Warning:</strong> Inflation has exceeded 12%. Immediate contractionary policy may be required.` : '',
+    s.unemploymentCrisis ? `🚨 <strong>Unemployment Crisis:</strong> Unemployment above 12% — recessionary gap is severe.` : '',
+    s.recessionCrisis ? `🚨 <strong>Recession Alert:</strong> GDP growth turned deeply negative. Emergency fiscal response may be needed.` : '',
+  ].filter(Boolean);
+
+  return `<div class="consequence-panel">
+    <div class="consequence-title">📈 Economic Consequences of Your Policy</div>
+    ${cosponsorLine}
+    ${narrative}
+    <div class="consequence-grid">
+      ${stat('GDP Growth', s.gdp, gdpDelta)}
+      ${stat('Inflation', s.inflation, infDelta)}
+      ${stat('Unemployment', s.unemployment, unDelta)}
+    </div>
+    ${spilloverNote}
+    ${dangerAlerts.map(a => `<div class="danger-alert">${a}</div>`).join('')}
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════
+//  CO-SPONSORSHIP
+// ══════════════════════════════════════════════════
+function renderCosponsorBox(countryId) {
+  const s = countryStats[countryId];
+  if (!activeCrisis || s.responded) return '';
+
+  const others = COUNTRIES.filter(c => c.id !== countryId);
+  const incoming = cosponsorProposals.filter(p => p.to === countryId && p.status === 'pending');
+  const myOutgoing = cosponsorProposals.filter(p => p.from === countryId);
+  const accepted = cosponsorProposals.filter(p => (p.from === countryId || p.to === countryId) && p.status === 'accepted');
+
+  const incomingHtml = incoming.map(prop => {
+    const fromCountry = COUNTRIES.find(c => c.id === prop.from);
+    const pObj = Object.values(POLICIES).flat().find(p => p.id === prop.policy);
+    return `<div class="cosponsor-proposal">
+      <div class="cosponsor-proposal-header">📩 Incoming Co-Sponsorship Proposal</div>
+      <strong>${fromCountry?.flag} ${fromCountry?.name}</strong> proposes a joint <strong>${pObj?.title || prop.policy}</strong> plan.
+      <p style="font-size:0.75rem;color:var(--gray);margin-top:0.3rem;">Accepting amplifies effects by 60% for both countries.</p>
+      <div class="cosponsor-accept-row">
+        <button class="btn-accept" onclick="respondToProposal('${prop.id}','accepted','${countryId}')">✓ Accept</button>
+        <button class="btn-decline" onclick="respondToProposal('${prop.id}','declined','${countryId}')">✗ Decline</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  const acceptedHtml = accepted.map(prop => {
+    const partnerId = prop.from === countryId ? prop.to : prop.from;
+    const partner = COUNTRIES.find(c => c.id === partnerId);
+    const pObj = Object.values(POLICIES).flat().find(p => p.id === prop.policy);
+    return `<div style="background:#edfaf4;border:1px solid var(--green);padding:0.5rem 0.8rem;font-size:0.8rem;border-radius:2px;margin-bottom:0.4rem;">✅ Joint plan with ${partner?.flag} ${partner?.name}: <strong>${pObj?.title||prop.policy}</strong> — <span style="color:var(--green);">+60% effect bonus active</span></div>`;
+  }).join('');
+
+  const flagButtons = others.map(c => {
+    const existing = myOutgoing.find(p => p.to === c.id);
+    const isAccepted = accepted.find(p => (p.from===c.id||p.to===c.id));
+    let cls = '';
+    let label = `${c.flag} ${c.name}`;
+    if (isAccepted) { cls = 'accepted'; label += ' ✓'; }
+    else if (existing?.status === 'pending') { cls = 'pending'; label += ' ⏳'; }
+    else if (existing?.status === 'declined') { cls = 'declined'; }
+    const disabled = existing || isAccepted ? 'onclick="return false" style="cursor:default"' : `onclick="sendCosponsorProposal('${countryId}','${c.id}')"`;
+    return `<div class="cosponsor-flag-btn ${cls}" ${disabled}>${label}</div>`;
+  }).join('');
+
+  return `<div class="cosponsor-box">
+    <div class="cosponsor-title">🤝 Co-Sponsor a Joint Policy Plan
+      <span style="font-size:0.65rem;font-weight:400;color:#a07000;">Invite another country to coordinate — amplifies economic effects for both</span>
+    </div>
+    ${incomingHtml}
+    ${acceptedHtml}
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--gray);margin-bottom:0.4rem;">Propose coordination to:</div>
+    <div class="cosponsor-grid">${flagButtons}</div>
+    <p style="font-size:0.72rem;color:var(--gray);">Select countries above to send a joint policy proposal. You must both choose the same policy type for the bonus to apply.</p>
+  </div>`;
+}
+
+function sendCosponsorProposal(fromId, toId) {
+  const s = countryStats[fromId];
+  if (!s.selectedPolicy) { alert('Select a policy first before proposing co-sponsorship.'); return; }
+  const id = `prop_${fromId}_${toId}_${Date.now()}`;
+  cosponsorProposals.push({ id, from: fromId, to: toId, policy: s.selectedPolicy, status: 'pending' });
+  countryStats[fromId].cosponsorProposed.push(toId);
+  renderPolicySection(fromId);
+  renderProposalBoard();
+}
+
+function respondToProposal(propId, response, countryId) {
+  const prop = cosponsorProposals.find(p => p.id === propId);
+  if (!prop) return;
+  prop.status = response;
+  if (response === 'accepted') {
+    countryStats[prop.from].cosponsorPartners.push(prop.to);
+    countryStats[prop.to].cosponsorPartners.push(prop.from);
+    countryStats[prop.from].cosponsorBonus = true;
+    countryStats[prop.to].cosponsorBonus = true;
+    // Force same policy on acceptor
+    countryStats[countryId].selectedPolicy = prop.policy;
+  }
+  renderPolicySection(countryId);
+  renderProposalBoard();
+}
+
+function renderProposalBoard() {
+  const div = document.getElementById('proposalBoard');
+  if (!div) return;
+  if (cosponsorProposals.length === 0) { div.innerHTML = '<em style="font-size:0.82rem;color:var(--gray);">No proposals yet this round.</em>'; return; }
+  div.innerHTML = cosponsorProposals.map(prop => {
+    const from = COUNTRIES.find(c => c.id === prop.from);
+    const to = COUNTRIES.find(c => c.id === prop.to);
+    const pObj = Object.values(POLICIES).flat().find(p => p.id === prop.policy);
+    const statusColor = prop.status === 'accepted' ? 'var(--green)' : prop.status === 'declined' ? 'var(--red)' : '#e8a020';
+    const statusLabel = prop.status === 'accepted' ? '✅ ACCEPTED' : prop.status === 'declined' ? '✗ DECLINED' : '⏳ PENDING';
+    return `<div style="display:flex;align-items:center;gap:0.8rem;padding:0.6rem 0.8rem;background:var(--cream);border:1px solid var(--border);margin-bottom:0.4rem;font-size:0.82rem;">
+      <span>${from?.flag} ${from?.name}</span>
+      <span style="color:var(--gray);">→</span>
+      <span>${to?.flag} ${to?.name}</span>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--blue);">${pObj?.label||prop.policy}</span>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:${statusColor};margin-left:auto;">${statusLabel}</span>
+    </div>`;
+  }).join('');
+}
+function renderCompareBanner(currentCountryId) {
+  const responded = COUNTRIES.filter(c => countryStats[c.id].responded && c.id !== currentCountryId);
+  if (responded.length === 0) return `<div class="compare-banner" style="margin-top:1rem;"><div class="compare-banner-title">🌐 Other Countries</div><em style="font-size:0.8rem;color:var(--gray);">No other countries have responded yet. Check back after others submit.</em></div>`;
+  const rows = responded.map(c => {
+    const p = countryStats[c.id].selectedPolicy;
+    const pObj = Object.values(POLICIES).flat().find(x => x.id === p);
+    return `<div class="compare-row">
+      <span>${c.flag}</span>
+      <span style="font-weight:500;">${c.name}</span>
+      <span class="compare-policy-tag">${pObj?.label || p || '—'}</span>
+    </div>`;
+  }).join('');
+  return `<div class="compare-banner" style="margin-top:1rem;">
+    <div class="compare-banner-title">🌐 How Other Countries Responded</div>
+    ${rows}
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════
+//  ASSESSMENT TABS
+// ══════════════════════════════════════════════════
+function showAssessTab(tab, el) {
+  document.querySelectorAll('.assess-tab').forEach(t => t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  ['scoring','debrief','heatmap','report'].forEach(t => {
+    const d = document.getElementById('assess-' + t);
+    if (d) d.style.display = t === tab ? 'block' : 'none';
+  });
+}
+
+// ══════════════════════════════════════════════════
+//  SCORING PANEL — 4-DIMENSION RUBRIC
+// ══════════════════════════════════════════════════
+const SCORE_DIMS = [
+  { label: 'Concept Accuracy', desc: 'Correctly applied AP Macro theory' },
+  { label: 'Policy Appropriateness', desc: 'Right tool for the economic situation' },
+  { label: 'Reasoning Quality', desc: 'Clear, logical written argument' },
+  { label: 'Trade-off Awareness', desc: 'Identified consequences & limitations' },
+];
+
+function renderScoringRows() {
+  const div = document.getElementById('scoringRows');
+  div.innerHTML = COUNTRIES.map(c => {
+    const s = countryStats[c.id];
+    const p = s.selectedPolicy;
+    const pObj = Object.values(POLICIES).flat().find(x => x.id === p);
+    const rubricEst = s.rubric ? Math.round(getRubricPct(s)/100*10) : '—';
+    const dims = s.dimScores || [0,0,0,0];
+    const dimTotal = dims.reduce((a,b)=>a+b,0); // out of 20
+    const finalScore = dimTotal > 0 ? (dimTotal/2).toFixed(1) : (s.teacherScore !== undefined ? s.teacherScore : '');
+
+    const dimRows = SCORE_DIMS.map((d, di) => {
+      const stars = Array(5).fill(0).map((_, si) => {
+        const lit = si < dims[di] ? 'lit' : '';
+        return `<span class="dim-star ${lit}" onclick="setDimScore('${c.id}',${di},${si+1})">★</span>`;
+      }).join('');
+      return `<div class="dim-rubric">
+        <div class="dim-label">${d.label} <span style="color:var(--gray);font-size:0.68rem;">(${d.desc})</span></div>
+        <div class="dim-stars">${stars}</div>
+      </div>`;
+    }).join('');
+
+    return `<div class="score-entry">
+      <div class="score-entry-header">
+        <span style="font-size:1.2rem;">${c.flag}</span>
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:0.9rem;">${c.name}</div>
+          <div style="font-size:0.72rem;color:var(--gray);">${pObj ? pObj.title : (s.responded ? 'Responded — no policy recorded' : '<em>No response yet</em>')}</div>
+          ${s.cosponsorBonus ? `<span class="cosponsor-badge" style="font-size:0.65rem;">🤝 Co-Sponsored</span>` : ''}
+          ${s.confidence ? `<span style="font-size:0.65rem;font-family:'IBM Plex Mono',monospace;color:${s.confidence==='high'?'var(--green)':s.confidence==='low'?'var(--red)':'#8a5700'};">Confidence: ${s.confidence.toUpperCase()}</span>` : ''}
+        </div>
+        <div style="text-align:center;min-width:60px;">
+          <div style="font-size:0.6rem;font-family:'IBM Plex Mono',monospace;color:var(--gray);">Self-Est.</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:1rem;font-weight:700;">${rubricEst}</div>
+        </div>
+        <div style="text-align:center;min-width:70px;">
+          <div style="font-size:0.6rem;font-family:'IBM Plex Mono',monospace;color:#7c3aed;">Score /10</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:1.2rem;font-weight:700;color:#7c3aed;">${finalScore || '—'}</div>
+          ${getScoreBadge(finalScore !== '' ? parseFloat(finalScore) : undefined)}
+        </div>
+      </div>
+      ${s.justification ? `<div style="font-size:0.75rem;color:var(--gray);font-style:italic;padding:0.4rem 0;border-top:1px solid var(--border);">"${s.justification.substring(0,120)}${s.justification.length>120?'...':''}"</div>` : ''}
+      ${s.responded ? `<div style="padding-top:0.6rem;">${dimRows}<div class="dim-total">${dimTotal}/20 → ${(dimTotal/2).toFixed(1)}/10</div>
+      <textarea class="score-annotation" placeholder="Optional annotation for student…" oninput="saveAnnotation('${c.id}',this.value)">${s.teacherAnnotation||''}</textarea></div>` : '<div style="font-size:0.75rem;color:var(--gray);padding-top:0.4rem;"><em>Awaiting response</em></div>'}
+      ${s.aiScoreComment ? `<div style="font-size:0.75rem;margin-top:0.4rem;color:var(--green);font-style:italic;">💬 AI: ${s.aiScoreComment}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function setDimScore(countryId, dimIdx, val) {
+  if (!countryStats[countryId].dimScores) countryStats[countryId].dimScores = [0,0,0,0];
+  countryStats[countryId].dimScores[dimIdx] = val;
+  const total = countryStats[countryId].dimScores.reduce((a,b)=>a+b,0);
+  countryStats[countryId].teacherScore = parseFloat((total/2).toFixed(1));
+  renderScoringRows();
+}
+
+function saveAnnotation(countryId, val) {
+  countryStats[countryId].teacherAnnotation = val;
+}
+
+async function autoScoreAll() {
+  const status = document.getElementById('autoScoreStatus');
+  const responded = COUNTRIES.filter(c => countryStats[c.id].responded && countryStats[c.id].selectedPolicy);
+  if (responded.length === 0) { status.textContent = 'No submissions to score yet.'; return; }
+  status.innerHTML = '<span class="loading-spinner" style="display:inline-block;width:14px;height:14px;border:2px solid #ccc;border-top-color:#7c3aed;border-radius:50%;animation:spin 0.8s linear infinite;margin-right:6px;vertical-align:middle;"></span> AI is scoring all responses across 4 dimensions...';
+  const crisis = CRISES.find(c => c.id === activeCrisis);
+
+  for (const country of responded) {
+    const s = countryStats[country.id];
+    const pObj = Object.values(POLICIES).flat().find(p => p.id === s.selectedPolicy);
+    const prompt = `You are an AP Macroeconomics teacher. Score this student response across 4 dimensions, each 0-5.
+
+Country: ${country.name} (${country.role})
+Economic Event: "${crisis?.title||'Unknown'}" — ${crisis?.desc||''}
+Policy Chosen: ${pObj?.title||s.selectedPolicy}
+Student Justification: "${s.justification||'[none provided]'}"
+
+1. Concept Accuracy (0-5): Correctly applied AP Macro theory?
+2. Policy Appropriateness (0-5): Right tool for this economic situation?
+3. Reasoning Quality (0-5): Clear, logical, organized argument?
+4. Trade-off Awareness (0-5): Identified consequences and limitations?
+
+Reply ONLY with JSON: {"d1":3,"d2":4,"d3":2,"d4":3,"comment":"One sharp sentence of feedback"}`;
+
+    try {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 200, messages: [{ role: 'user', content: prompt }] })
+      });
+      const data = await resp.json();
+      const text = data.content?.map(i=>i.text||'').join('').replace(/```json|```/g,'').trim();
+      const parsed = JSON.parse(text);
+      countryStats[country.id].dimScores = [parsed.d1||0,parsed.d2||0,parsed.d3||0,parsed.d4||0];
+      const total = countryStats[country.id].dimScores.reduce((a,b)=>a+b,0);
+      countryStats[country.id].teacherScore = parseFloat((total/2).toFixed(1));
+      countryStats[country.id].aiScoreComment = parsed.comment||'';
+    } catch(e) { /* skip */ }
+  }
+  status.textContent = `✅ Auto-scored ${responded.length} response${responded.length!==1?'s':''} across 4 dimensions.`;
+  renderScoringRows();
+}
+
+async function generateRoundReport() {
+  const div = document.getElementById('roundReportContent');
+  if (!div) return;
+  div.innerHTML = '<div style="padding:1rem;color:var(--gray);font-size:0.85rem;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #ccc;border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite;margin-right:8px;vertical-align:middle;"></span>Generating round summary...</div>';
+  const crisis = CRISES.find(c => c.id === activeCrisis);
+  const responded = COUNTRIES.filter(c => countryStats[c.id].responded);
+  const scores = responded.map(c => countryStats[c.id].teacherScore).filter(x=>x!==undefined);
+  const avgScore = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1) : 'N/A';
+  const summaries = responded.map(c => {
+    const s = countryStats[c.id]; const pObj = Object.values(POLICIES).flat().find(p=>p.id===s.selectedPolicy);
+    return `- ${c.flag} ${c.name}: ${pObj?.title||s.selectedPolicy||'no policy'} (Score: ${s.teacherScore||'unscored'}/10, Confidence: ${s.confidence||'unstated'})${s.cosponsorBonus?' [Co-Sponsored]':''}\n  Justification: "${(s.justification||'none').substring(0,150)}"`;
+  }).join('\n');
+  const cosponsors = cosponsorProposals.filter(p=>p.status==='accepted');
+  const prompt = `You are an AP Macroeconomics teacher reviewing a completed simulation round.
+
+Event: "${crisis?.title||'N/A'}" (${crisis?.unit||''}) — ${crisis?.desc||''}
+Concepts tested: ${crisis?.concepts?.join(', ')||''}
+Student Responses:\n${summaries}
+Co-sponsored plans: ${cosponsors.length > 0 ? cosponsors.map(p=>{const f=COUNTRIES.find(c=>c.id===p.from);const t=COUNTRIES.find(c=>c.id===p.to);return `${f?.name}+${t?.name}`;}).join(', ') : 'None'}
+Class avg score: ${avgScore}/10 | ${responded.length}/${COUNTRIES.length} responded
+
+Write a Round Summary Report for the teacher with:
+1. **Overall Class Performance** (2-3 sentences)
+2. **Most Common Policy Choice & Appropriateness**
+3. **Key Misconceptions to Address** (specific AP Macro concepts)
+4. **Co-Sponsorship Observations** (if any — collaboration dynamics)
+5. **Recommended Discussion Questions** (2-3 specific questions)
+6. **Students to Watch** (strong performers and those needing support)
+
+Use AP Macro terminology. Be concise and actionable.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1200, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await resp.json();
+    const text = data.content?.map(i=>i.text||'').join('')||'Report unavailable.';
+    div.innerHTML = `<div class="round-report">${text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}</div>`;
+  } catch(e) { div.innerHTML = '<div style="color:var(--red);font-size:0.85rem;">⚠ Could not generate report.</div>'; }
+}
+
+function copyReport() {
+  const text = document.getElementById('roundReportContent')?.innerText||'';
+  navigator.clipboard.writeText(text).then(()=>alert('Report copied to clipboard!'));
+}
+
+function getScoreBadge(score) {
+  if (score === undefined || score === '' || score === null) return '';
+  const n = parseFloat(score);
+  if (n >= 9)  return `<span class="score-badge score-a">A</span>`;
+  if (n >= 8)  return `<span class="score-badge score-a">A−</span>`;
+  if (n >= 7)  return `<span class="score-badge score-b">B</span>`;
+  if (n >= 6)  return `<span class="score-badge score-b">B−</span>`;
+  if (n >= 5)  return `<span class="score-badge score-c">C</span>`;
+  if (n >= 4)  return `<span class="score-badge score-c">C−</span>`;
+  return `<span class="score-badge score-d">D/F</span>`;
+}
+
+function saveTeacherScore(countryId, val) {
+  countryStats[countryId].teacherScore = val !== '' ? parseFloat(val) : undefined;
+}
+
+function exportGrades() {
+  let csv = `Country,Policy,Co-Sponsored,Score /10,Grade,Concept,Policy Fit,Reasoning,Trade-offs,Self-Est,Confidence,Words,Annotation,AI Comment\n`;
+  COUNTRIES.forEach(c => {
+    const s = countryStats[c.id];
+    const pObj = Object.values(POLICIES).flat().find(p => p.id === s.selectedPolicy);
+    const words = s.justification ? s.justification.trim().split(/\s+/).length : 0;
+    const selfEst = s.rubric ? Math.round(getRubricPct(s)/100*10) : '';
+    const score = s.teacherScore !== undefined ? s.teacherScore : '';
+    const grade = score !== '' ? getScoreBadge(parseFloat(score)).replace(/<[^>]+>/g,'') : '';
+    const dims = s.dimScores || [0,0,0,0];
+    csv += `"${c.flag} ${c.name}","${pObj?.title||s.selectedPolicy||'No response'}","${s.cosponsorBonus?'Yes':'No'}",${score},"${grade}",${dims[0]},${dims[1]},${dims[2]},${dims[3]},${selfEst},"${s.confidence||''}",${words},"${(s.teacherAnnotation||'').replace(/"/g,"'")}","${(s.aiScoreComment||'').replace(/"/g,"'")}"\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `ap-macro-round${currentRound}-grades.csv`;
+  a.click();
+}
+
+// ══════════════════════════════════════════════════
+//  DEBRIEF CARDS
+// ══════════════════════════════════════════════════
+function renderDebriefCards() {
+  const div = document.getElementById('debriefCards');
+  const responded = COUNTRIES.filter(c => countryStats[c.id].responded);
+  if (responded.length === 0) { div.innerHTML = '<em style="color:var(--gray);font-size:0.85rem;">No responses yet. Students must submit before debrief is available.</em>'; return; }
+  div.innerHTML = responded.map(c => {
+    const s = countryStats[c.id];
+    const pObj = Object.values(POLICIES).flat().find(p => p.id === s.selectedPolicy);
+    const score = s.teacherScore !== undefined ? s.teacherScore : '—';
+    const confColor = s.confidence === 'high' ? 'var(--green)' : s.confidence === 'low' ? 'var(--red)' : '#8a5700';
+    return `<div class="debrief-card">
+      <div class="debrief-flag">${c.flag}</div>
+      <div>
+        <div style="font-weight:700;font-size:0.9rem;">${c.name}</div>
+        <div class="debrief-policy-label" style="color:var(--blue);margin-top:0.3rem;">${pObj?.title || s.selectedPolicy || '—'}</div>
+        ${s.confidence ? `<span style="font-size:0.68rem;font-family:'IBM Plex Mono',monospace;color:${confColor};">Confidence: ${s.confidence.toUpperCase()}</span>` : ''}
+        <div class="debrief-justification">${s.justification || '<em>No justification provided.</em>'}</div>
+        ${s.aiScoreComment ? `<div style="font-size:0.75rem;margin-top:0.5rem;color:var(--green);font-style:italic;">💬 ${s.aiScoreComment}</div>` : ''}
+      </div>
+      <div class="debrief-score-col">
+        <div class="debrief-score-big">${score}</div>
+        <div class="debrief-score-label">${score !== '—' ? '/10' : 'unscored'}</div>
+        ${getScoreBadge(s.teacherScore)}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════
+//  CONCEPT HEATMAP
+// ══════════════════════════════════════════════════
+function renderHeatmap() {
+  const hmDiv = document.getElementById('conceptHeatmap');
+  const statsDiv = document.getElementById('classStats');
+  const allConcepts = [...new Set(CRISES.flatMap(c => c.concepts))];
+  const justifications = COUNTRIES.map(c => (countryStats[c.id].justification||'').toLowerCase()).join(' ');
+  const counts = allConcepts.map(c => ({ concept: c, count: (justifications.match(new RegExp(c.toLowerCase().replace(/[/]/g,'\\/'), 'g'))||[]).length }));
+  const max = Math.max(...counts.map(x => x.count), 1);
+
+  hmDiv.innerHTML = counts.map(({ concept, count }) => {
+    const intensity = count / max;
+    const bg = count === 0 ? '#f0ece0' : `rgba(43,74,122,${0.15 + intensity * 0.75})`;
+    const color = intensity > 0.5 ? 'white' : 'var(--ink)';
+    return `<div class="heatmap-cell" style="background:${bg};color:${color};">
+      <div class="hm-label">${concept}</div>
+      <div class="hm-count">${count}</div>
+    </div>`;
+  }).join('');
+
+  // Class statistics
+  const responded = COUNTRIES.filter(c => countryStats[c.id].responded).length;
+  const scored = COUNTRIES.filter(c => countryStats[c.id].teacherScore !== undefined).length;
+  const scores = COUNTRIES.map(c => countryStats[c.id].teacherScore).filter(x => x !== undefined);
+  const avg = scores.length ? (scores.reduce((a,b) => a+b, 0) / scores.length).toFixed(1) : '—';
+  const totalWords = COUNTRIES.reduce((sum, c) => sum + (countryStats[c.id].justification ? countryStats[c.id].justification.trim().split(/\s+/).length : 0), 0);
+  const avgWords = responded ? Math.round(totalWords / responded) : 0;
+  const confHigh = COUNTRIES.filter(c => countryStats[c.id].confidence === 'high').length;
+  const confLow  = COUNTRIES.filter(c => countryStats[c.id].confidence === 'low').length;
+
+  statsDiv.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-top:0.5rem;">
+      ${statBox('Responses', responded + '/' + COUNTRIES.length, 'var(--blue)')}
+      ${statBox('Avg Score', avg + (scores.length ? '/10' : ''), 'var(--green)')}
+      ${statBox('Avg Words', avgWords, '#8b5cf6')}
+      ${statBox('High Conf.', confHigh, '#e8a020')}
+    </div>
+    <div style="margin-top:1rem;font-size:0.8rem;color:var(--gray);">
+      ${confLow > 0 ? `⚠ <strong>${confLow} student${confLow>1?'s':''}</strong> marked low confidence — consider revisiting those concepts in class discussion.` : ''}
+    </div>`;
+}
+
+function statBox(label, val, color) {
+  return `<div style="background:white;border:1px solid var(--border);border-top:3px solid ${color};padding:1rem;text-align:center;">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:0.4rem;">${label}</div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:1.5rem;font-weight:700;color:${color};">${val}</div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════
+//  KICK OFF
+// ══════════════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
